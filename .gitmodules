@@ -1,0 +1,3 @@
+[submodule "ConnectionHandler"]
+	path = ConnectionHandler
+	url = git@github.com:MrVolot/ConnectionHandler.git
