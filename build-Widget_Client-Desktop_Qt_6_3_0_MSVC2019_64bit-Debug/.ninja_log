@@ -20,3 +20,14 @@
 7	23	0	CMakeFiles/clean.additional	c313c7df7a6a27c5
 23	30	0	clean	3807ae1e948da024
 27	396	6898069682556406	Widget_Client.exe	450f37ca6942db7e
+16	246	6898074704254551	Widget_Client_autogen/timestamp	9471cbf5a0f2880b
+16	246	6898074704254551	Widget_Client_autogen/mocs_compilation.cpp	9471cbf5a0f2880b
+16	246	6898074704254551	D:/repos/Final_Messenger/WidgetClient/build-Widget_Client-Desktop_Qt_6_3_0_MSVC2019_64bit-Debug/Widget_Client_autogen/timestamp	9471cbf5a0f2880b
+16	246	6898074704254551	D:/repos/Final_Messenger/WidgetClient/build-Widget_Client-Desktop_Qt_6_3_0_MSVC2019_64bit-Debug/Widget_Client_autogen/mocs_compilation.cpp	9471cbf5a0f2880b
+268	2366	6898074725394519	CMakeFiles/Widget_Client.dir/MessageWidget.cpp.obj	a87085efa609e28f
+265	2368	6898074725384514	CMakeFiles/Widget_Client.dir/ContactsWidget.cpp.obj	7f79a909c358eeba
+262	2776	6898074729474523	CMakeFiles/Widget_Client.dir/Chat.cpp.obj	44c083822b15340
+253	4721	6898074748864508	CMakeFiles/Widget_Client.dir/main.cpp.obj	93948712199dc58d
+258	4959	6898074751244580	CMakeFiles/Widget_Client.dir/RegisterDialog.cpp.obj	821ecf2529f4bc6e
+256	5294	6898074754604515	CMakeFiles/Widget_Client.dir/Mainwindow.cpp.obj	118415ccf2963c6c
+5294	5510	6898074756454571	Widget_Client.exe	450f37ca6942db7e
