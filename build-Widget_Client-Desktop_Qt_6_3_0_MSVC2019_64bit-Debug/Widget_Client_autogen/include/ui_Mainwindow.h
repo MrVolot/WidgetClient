@@ -67,6 +67,7 @@ public:
         verticalLayoutWidget_2->setObjectName(QString::fromUtf8("verticalLayoutWidget_2"));
         chatLayout = new QVBoxLayout(verticalLayoutWidget_2);
         chatLayout->setObjectName(QString::fromUtf8("chatLayout"));
+        chatLayout->setSizeConstraint(QLayout::SetDefaultConstraint);
         chatLayout->setContentsMargins(0, 0, 0, 0);
         splitter->addWidget(verticalLayoutWidget_2);
 

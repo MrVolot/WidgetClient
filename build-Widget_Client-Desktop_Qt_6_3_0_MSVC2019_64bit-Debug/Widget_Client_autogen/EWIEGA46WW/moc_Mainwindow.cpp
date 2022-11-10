@@ -8,6 +8,7 @@
 
 #include <memory>
 #include "../../../Widget_Client/Mainwindow.h"
+#include <QtGui/qtextcursor.h>
 #include <QtCore/qbytearray.h>
 #include <QtCore/qmetatype.h>
 #if !defined(Q_MOC_OUTPUT_REVISION)
@@ -22,34 +23,29 @@ QT_BEGIN_MOC_NAMESPACE
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 struct qt_meta_stringdata_MainWindow_t {
-    const uint offsetsAndSize[28];
-    char stringdata0[176];
+    const uint offsetsAndSize[20];
+    char stringdata0[136];
 };
 #define QT_MOC_LITERAL(ofs, len) \
     uint(offsetof(qt_meta_stringdata_MainWindow_t, stringdata0) + ofs), len 
 static const qt_meta_stringdata_MainWindow_t qt_meta_stringdata_MainWindow = {
     {
 QT_MOC_LITERAL(0, 10), // "MainWindow"
-QT_MOC_LITERAL(11, 19), // "pushFriendListToGui"
-QT_MOC_LITERAL(31, 0), // ""
-QT_MOC_LITERAL(32, 20), // "std::vector<Contact>"
-QT_MOC_LITERAL(53, 10), // "friendList"
-QT_MOC_LITERAL(64, 19), // "on_listView_clicked"
-QT_MOC_LITERAL(84, 11), // "QModelIndex"
-QT_MOC_LITERAL(96, 5), // "index"
-QT_MOC_LITERAL(102, 11), // "sendMessage"
-QT_MOC_LITERAL(114, 3), // "msg"
-QT_MOC_LITERAL(118, 2), // "id"
-QT_MOC_LITERAL(121, 32), // "on_contactListWidget_itemClicked"
-QT_MOC_LITERAL(154, 16), // "QListWidgetItem*"
-QT_MOC_LITERAL(171, 4) // "item"
+QT_MOC_LITERAL(11, 27), // "createMessageInstanceSignal"
+QT_MOC_LITERAL(39, 0), // ""
+QT_MOC_LITERAL(40, 3), // "msg"
+QT_MOC_LITERAL(44, 2), // "id"
+QT_MOC_LITERAL(47, 11), // "sendMessage"
+QT_MOC_LITERAL(59, 32), // "on_contactListWidget_itemClicked"
+QT_MOC_LITERAL(92, 16), // "QListWidgetItem*"
+QT_MOC_LITERAL(109, 4), // "item"
+QT_MOC_LITERAL(114, 21) // "createMessageInstance"
 
     },
-    "MainWindow\0pushFriendListToGui\0\0"
-    "std::vector<Contact>\0friendList\0"
-    "on_listView_clicked\0QModelIndex\0index\0"
-    "sendMessage\0msg\0id\0on_contactListWidget_itemClicked\0"
-    "QListWidgetItem*\0item"
+    "MainWindow\0createMessageInstanceSignal\0"
+    "\0msg\0id\0sendMessage\0"
+    "on_contactListWidget_itemClicked\0"
+    "QListWidgetItem*\0item\0createMessageInstance"
 };
 #undef QT_MOC_LITERAL
 
@@ -64,19 +60,23 @@ static const uint qt_meta_data_MainWindow[] = {
        0,    0, // enums/sets
        0,    0, // constructors
        0,       // flags
-       0,       // signalCount
+       1,       // signalCount
+
+ // signals: name, argc, parameters, tag, flags, initial metatype offsets
+       1,    2,   38,    2, 0x06,    1 /* Public */,
 
  // slots: name, argc, parameters, tag, flags, initial metatype offsets
-       1,    1,   38,    2, 0x08,    1 /* Private */,
-       5,    1,   41,    2, 0x08,    3 /* Private */,
-       8,    2,   44,    2, 0x08,    5 /* Private */,
-      11,    1,   49,    2, 0x08,    8 /* Private */,
+       5,    2,   43,    2, 0x08,    4 /* Private */,
+       6,    1,   48,    2, 0x08,    7 /* Private */,
+       9,    2,   51,    2, 0x08,    9 /* Private */,
+
+ // signals: parameters
+    QMetaType::Void, QMetaType::QString, QMetaType::ULongLong,    3,    4,
 
  // slots: parameters
-    QMetaType::Void, 0x80000000 | 3,    4,
-    QMetaType::Void, 0x80000000 | 6,    7,
-    QMetaType::Void, QMetaType::QString, QMetaType::LongLong,    9,   10,
-    QMetaType::Void, 0x80000000 | 12,   13,
+    QMetaType::Void, QMetaType::QString, QMetaType::ULongLong,    3,    4,
+    QMetaType::Void, 0x80000000 | 7,    8,
+    QMetaType::Void, QMetaType::QString, QMetaType::ULongLong,    3,    4,
 
        0        // eod
 };
@@ -87,11 +87,20 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         auto *_t = static_cast<MainWindow *>(_o);
         (void)_t;
         switch (_id) {
-        case 0: _t->pushFriendListToGui((*reinterpret_cast< std::add_pointer_t<std::vector<Contact>>>(_a[1]))); break;
-        case 1: _t->on_listView_clicked((*reinterpret_cast< std::add_pointer_t<QModelIndex>>(_a[1]))); break;
-        case 2: _t->sendMessage((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<qlonglong>>(_a[2]))); break;
-        case 3: _t->on_contactListWidget_itemClicked((*reinterpret_cast< std::add_pointer_t<QListWidgetItem*>>(_a[1]))); break;
+        case 0: _t->createMessageInstanceSignal((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<qulonglong>>(_a[2]))); break;
+        case 1: _t->sendMessage((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<qulonglong>>(_a[2]))); break;
+        case 2: _t->on_contactListWidget_itemClicked((*reinterpret_cast< std::add_pointer_t<QListWidgetItem*>>(_a[1]))); break;
+        case 3: _t->createMessageInstance((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<qulonglong>>(_a[2]))); break;
         default: ;
+        }
+    } else if (_c == QMetaObject::IndexOfMethod) {
+        int *result = reinterpret_cast<int *>(_a[0]);
+        {
+            using _t = void (MainWindow::*)(const QString & , unsigned long long );
+            if (*reinterpret_cast<_t *>(_a[1]) == static_cast<_t>(&MainWindow::createMessageInstanceSignal)) {
+                *result = 0;
+                return;
+            }
         }
     }
 }
@@ -103,8 +112,8 @@ const QMetaObject MainWindow::staticMetaObject = { {
     qt_static_metacall,
     nullptr,
 qt_incomplete_metaTypeArray<qt_meta_stringdata_MainWindow_t
-, QtPrivate::TypeAndForceComplete<MainWindow, std::true_type>
-, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<std::vector<Contact>, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<const QModelIndex &, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<const QString &, std::false_type>, QtPrivate::TypeAndForceComplete<long long, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<QListWidgetItem *, std::false_type>
+, QtPrivate::TypeAndForceComplete<MainWindow, std::true_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<const QString &, std::false_type>, QtPrivate::TypeAndForceComplete<unsigned long long, std::false_type>
+, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<const QString &, std::false_type>, QtPrivate::TypeAndForceComplete<unsigned long long, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<QListWidgetItem *, std::false_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<const QString &, std::false_type>, QtPrivate::TypeAndForceComplete<unsigned long long, std::false_type>
 
 
 >,
@@ -140,6 +149,13 @@ int MainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
         _id -= 4;
     }
     return _id;
+}
+
+// SIGNAL 0
+void MainWindow::createMessageInstanceSignal(const QString & _t1, unsigned long long _t2)
+{
+    void *_a[] = { nullptr, const_cast<void*>(reinterpret_cast<const void*>(std::addressof(_t1))), const_cast<void*>(reinterpret_cast<const void*>(std::addressof(_t2))) };
+    QMetaObject::activate(this, &staticMetaObject, 0, _a);
 }
 QT_WARNING_POP
 QT_END_MOC_NAMESPACE

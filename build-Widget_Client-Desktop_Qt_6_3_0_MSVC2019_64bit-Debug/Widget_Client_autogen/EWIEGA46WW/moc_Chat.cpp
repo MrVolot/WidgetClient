@@ -8,6 +8,7 @@
 
 #include <memory>
 #include "../../../Widget_Client/Chat.h"
+#include <QtGui/qtextcursor.h>
 #include <QtCore/qbytearray.h>
 #include <QtCore/qmetatype.h>
 #if !defined(Q_MOC_OUTPUT_REVISION)
@@ -61,7 +62,7 @@ static const uint qt_meta_data_Chat[] = {
        5,    0,   31,    2, 0x08,    4 /* Private */,
 
  // signals: parameters
-    QMetaType::Void, QMetaType::QString, QMetaType::LongLong,    3,    4,
+    QMetaType::Void, QMetaType::QString, QMetaType::ULongLong,    3,    4,
 
  // slots: parameters
     QMetaType::Void,
@@ -75,14 +76,14 @@ void Chat::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void *
         auto *_t = static_cast<Chat *>(_o);
         (void)_t;
         switch (_id) {
-        case 0: _t->sendMessage((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<qlonglong>>(_a[2]))); break;
+        case 0: _t->sendMessage((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<qulonglong>>(_a[2]))); break;
         case 1: _t->on_sendMsgBtn_clicked(); break;
         default: ;
         }
     } else if (_c == QMetaObject::IndexOfMethod) {
         int *result = reinterpret_cast<int *>(_a[0]);
         {
-            using _t = void (Chat::*)(const QString & , long long );
+            using _t = void (Chat::*)(const QString & , unsigned long long );
             if (*reinterpret_cast<_t *>(_a[1]) == static_cast<_t>(&Chat::sendMessage)) {
                 *result = 0;
                 return;
@@ -98,7 +99,7 @@ const QMetaObject Chat::staticMetaObject = { {
     qt_static_metacall,
     nullptr,
 qt_incomplete_metaTypeArray<qt_meta_stringdata_Chat_t
-, QtPrivate::TypeAndForceComplete<Chat, std::true_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<const QString &, std::false_type>, QtPrivate::TypeAndForceComplete<long long, std::false_type>
+, QtPrivate::TypeAndForceComplete<Chat, std::true_type>, QtPrivate::TypeAndForceComplete<void, std::false_type>, QtPrivate::TypeAndForceComplete<const QString &, std::false_type>, QtPrivate::TypeAndForceComplete<unsigned long long, std::false_type>
 , QtPrivate::TypeAndForceComplete<void, std::false_type>
 
 
@@ -138,7 +139,7 @@ int Chat::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 }
 
 // SIGNAL 0
-void Chat::sendMessage(const QString & _t1, long long _t2)
+void Chat::sendMessage(const QString & _t1, unsigned long long _t2)
 {
     void *_a[] = { nullptr, const_cast<void*>(reinterpret_cast<const void*>(std::addressof(_t1))), const_cast<void*>(reinterpret_cast<const void*>(std::addressof(_t2))) };
     QMetaObject::activate(this, &staticMetaObject, 0, _a);

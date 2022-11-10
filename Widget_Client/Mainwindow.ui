@@ -43,7 +43,11 @@
        </layout>
       </widget>
       <widget class="QWidget" name="verticalLayoutWidget_2">
-       <layout class="QVBoxLayout" name="chatLayout"/>
+       <layout class="QVBoxLayout" name="chatLayout">
+        <property name="sizeConstraint">
+         <enum>QLayout::SetDefaultConstraint</enum>
+        </property>
+       </layout>
       </widget>
      </widget>
     </item>

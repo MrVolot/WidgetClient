@@ -1074,6 +1074,7 @@ Widget_Client_autogen/timestamp: \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qglobalstatic.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qhash.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qhashfunctions.h \
+  D:/QT/6.3.0/msvc2019_64/include/QtCore/qiodevice.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qiodevicebase.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qitemselectionmodel.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qiterable.h \
@@ -1123,6 +1124,7 @@ Widget_Client_autogen/timestamp: \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qtextstream.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qtmetamacros.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qtypeinfo.h \
+  D:/QT/6.3.0/msvc2019_64/include/QtCore/qurl.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qutf8stringview.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qvariant.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qvarlengtharray.h \
@@ -1140,12 +1142,14 @@ Widget_Client_autogen/timestamp: \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qkeysequence.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qpaintdevice.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qpalette.h \
+  D:/QT/6.3.0/msvc2019_64/include/QtGui/qpicture.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qpixelformat.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qpixmap.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qpolygon.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qregion.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qrgb.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qrgba64.h \
+  D:/QT/6.3.0/msvc2019_64/include/QtGui/qtextdocument.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qtgui-config.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qtguiexports.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qtguiglobal.h \
@@ -1154,6 +1158,7 @@ Widget_Client_autogen/timestamp: \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qwindowdefs.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qwindowdefs_win.h \
   D:/QT/6.3.0/msvc2019_64/include/QtWidgets/QDialog \
+  D:/QT/6.3.0/msvc2019_64/include/QtWidgets/QLabel \
   D:/QT/6.3.0/msvc2019_64/include/QtWidgets/QListWidgetItem \
   D:/QT/6.3.0/msvc2019_64/include/QtWidgets/QMainWindow \
   D:/QT/6.3.0/msvc2019_64/include/QtWidgets/QWidget \
@@ -1164,6 +1169,7 @@ Widget_Client_autogen/timestamp: \
   D:/QT/6.3.0/msvc2019_64/include/QtWidgets/qabstractspinbox.h \
   D:/QT/6.3.0/msvc2019_64/include/QtWidgets/qdialog.h \
   D:/QT/6.3.0/msvc2019_64/include/QtWidgets/qframe.h \
+  D:/QT/6.3.0/msvc2019_64/include/QtWidgets/qlabel.h \
   D:/QT/6.3.0/msvc2019_64/include/QtWidgets/qlistview.h \
   D:/QT/6.3.0/msvc2019_64/include/QtWidgets/qlistwidget.h \
   D:/QT/6.3.0/msvc2019_64/include/QtWidgets/qmainwindow.h \
@@ -1262,23 +1268,80 @@ Widget_Client_autogen/timestamp: \
   D:/QT/6.3.0/msvc2019_64/lib/cmake/Qt6WidgetsTools/Qt6WidgetsToolsTargets-relwithdebinfo.cmake \
   D:/QT/6.3.0/msvc2019_64/lib/cmake/Qt6WidgetsTools/Qt6WidgetsToolsTargets.cmake \
   D:/QT/6.3.0/msvc2019_64/lib/cmake/Qt6WidgetsTools/Qt6WidgetsToolsVersionlessTargets.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeCXXCompiler.cmake.in \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeCXXCompilerABI.cpp \
   D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeCXXInformation.cmake \
   D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeCheckCompilerFlagCommonPatterns.cmake \
   D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeCommonLanguageInclude.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeCompilerIdDetection.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeDetermineCXXCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeDetermineCompileFeatures.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeDetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeDetermineCompilerABI.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeDetermineCompilerId.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeDetermineRCCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeDetermineSystem.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeFindBinUtils.cmake \
   D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeFindDependencyMacro.cmake \
   D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeGenericSystem.cmake \
   D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeInitializeConfigs.cmake \
   D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeLanguageInformation.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeNinjaFindMake.cmake \
   D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeParseArguments.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeParseImplicitIncludeInfo.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeParseImplicitLinkInfo.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeParseLibraryArchitecture.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeRCCompiler.cmake.in \
   D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeRCInformation.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeSystem.cmake.in \
   D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeSystemSpecificInformation.cmake \
   D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeSystemSpecificInitialize.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeTestCXXCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeTestCompilerCommon.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CMakeTestRCCompiler.cmake \
   D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CheckCXXCompilerFlag.cmake \
   D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CheckCXXSourceCompiles.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CheckIncludeFile.cxx.in \
   D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CheckIncludeFileCXX.cmake \
   D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/CheckLibraryExists.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/ADSP-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/ARMCC-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/ARMClang-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/AppleClang-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/Borland-DetermineCompiler.cmake \
   D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/CMakeCommonCompilerMacros.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/Clang-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/Clang-DetermineCompilerInternal.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/Comeau-CXX-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/Compaq-CXX-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/Cray-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/Embarcadero-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/Fujitsu-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/FujitsuClang-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/GHS-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/GNU-CXX-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/HP-CXX-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/IAR-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/IBMCPP-CXX-DetermineVersionInternal.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/IBMClang-CXX-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/Intel-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/IntelLLVM-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/LCC-CXX-DetermineCompiler.cmake \
   D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/MSVC-CXX.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/MSVC-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/NVHPC-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/NVIDIA-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/OpenWatcom-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/PGI-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/PathScale-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/SCO-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/SunPro-CXX-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/TI-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/VisualAge-CXX-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/Watcom-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/XL-CXX-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/XLClang-CXX-DetermineCompiler.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Compiler/zOS-CXX-DetermineCompiler.cmake \
   D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/FindBoost.cmake \
   D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/FindPackageHandleStandardArgs.cmake \
   D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/FindPackageMessage.cmake \
@@ -1288,6 +1351,8 @@ Widget_Client_autogen/timestamp: \
   D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Internal/CheckCompilerFlag.cmake \
   D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Internal/CheckFlagCommonConfig.cmake \
   D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Internal/CheckSourceCompiles.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Internal/FeatureTesting.cmake \
+  D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Platform/Windows-Determine-CXX.cmake \
   D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Platform/Windows-MSVC-CXX.cmake \
   D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Platform/Windows-MSVC.cmake \
   D:/QT/Tools/CMake_64/share/cmake-3.23/Modules/Platform/Windows.cmake \
@@ -1311,6 +1376,8 @@ Widget_Client_autogen/timestamp: \
   D:/repos/Final_Messenger/WidgetClient/Widget_Client/IoServiceWorker.h \
   D:/repos/Final_Messenger/WidgetClient/Widget_Client/Mainwindow.cpp \
   D:/repos/Final_Messenger/WidgetClient/Widget_Client/Mainwindow.h \
+  D:/repos/Final_Messenger/WidgetClient/Widget_Client/MessageWidget.cpp \
+  D:/repos/Final_Messenger/WidgetClient/Widget_Client/MessageWidget.h \
   D:/repos/Final_Messenger/WidgetClient/Widget_Client/Messenger.h \
   D:/repos/Final_Messenger/WidgetClient/Widget_Client/OnlineStatusChecker.cpp \
   D:/repos/Final_Messenger/WidgetClient/Widget_Client/OnlineStatusChecker.h \
@@ -1325,5 +1392,6 @@ Widget_Client_autogen/timestamp: \
   D:/repos/Final_Messenger/WidgetClient/Widget_Client/Chat.ui \
   D:/repos/Final_Messenger/WidgetClient/Widget_Client/ContactsWidget.ui \
   D:/repos/Final_Messenger/WidgetClient/Widget_Client/Mainwindow.ui \
+  D:/repos/Final_Messenger/WidgetClient/Widget_Client/MessageWidget.ui \
   D:/repos/Final_Messenger/WidgetClient/Widget_Client/RegisterDialog.ui \
   D:/QT/Tools/CMake_64/bin/cmake.exe

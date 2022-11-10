@@ -5,12 +5,12 @@ QString &Contact::getName()
     return name_;
 }
 
-long long Contact::getId()
+unsigned long long Contact::getId()
 {
     return id_;
 }
 
-Contact::Contact(const QString& name, long long id): name_{name}, id_{id}
+Contact::Contact(const QString& name, unsigned long long id): name_{name}, id_{id}
 {
 
 }

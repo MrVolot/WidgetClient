@@ -15,8 +15,7 @@ class Messenger: public std::enable_shared_from_this<Messenger<Caller>>
     short port_;
     boost::asio::io_service& service_;
     std::shared_ptr<IConnectionHandler<Messenger>> handler_;
-    std::unordered_map<long long, Contact> contactMap_;
-    long long userId_;
+    unsigned long long userId_;
     std::string hash_;
     std::string name_;
     Caller* caller_;
@@ -24,7 +23,7 @@ class Messenger: public std::enable_shared_from_this<Messenger<Caller>>
     std::vector<Contact> friendList_;
 
 
-    std::function<void(Caller*, const std::string& sender, const std::string& message)> senderCallback_;
+    std::function<void(Caller*, const QString&, unsigned long long)> senderCallback_;
 
     void readCallback(std::shared_ptr<IConnectionHandler<Messenger>> handler, const boost::system::error_code &err, size_t bytes_transferred);
     void writeCallback(std::shared_ptr<IConnectionHandler<Messenger>> handler, const boost::system::error_code &err, size_t bytes_transferred);
@@ -40,7 +39,7 @@ public:
     void initializeConnection();
     void sendMessage(const std::string& receiver, const std::string& message);
     void logout();
-    void setReceiveMessageCallback(std::function<void(Caller*, const std::string& sender, const std::string& message)> callback);
+    void setReceiveMessageCallback(std::function<void(Caller*, const QString&, unsigned long long)> callback);
     std::vector<Contact>& getFriendList();
 };
 
@@ -78,9 +77,9 @@ void Messenger<Caller>::readCallback(std::shared_ptr<IConnectionHandler<Messenge
         qDebug()<<err.message().c_str();
         return;
     }
-    auto data{boost::asio::buffer_cast<const char*>(handler->getStrBuf()->data())};
-    parseServerCommands(data);
-    handler_->callAsyncRead();
+    parseServerCommands(handler->getData());
+    handler->resetStrBuf();
+    handler->callAsyncRead();
 }
 template <typename Caller>
 void Messenger<Caller>::writeCallback(std::shared_ptr<IConnectionHandler<Messenger> > handler, const boost::system::error_code &err, size_t bytes_transferred)
@@ -116,7 +115,7 @@ void Messenger<Caller>::receiveMessage(const std::string &data)
     Json::Reader reader;
     reader.parse(data, value);
     qDebug()<<value["sender"].asCString() << value["message"].asCString();
-    //senderCallback_(caller_, value["sender"].asString(), value["message"].asString());
+    senderCallback_(caller_, value["message"].asCString(), std::stoull(value["sender"].asString()));
 }
 
 template<typename Caller>
@@ -127,7 +126,7 @@ void Messenger<Caller>::fillFriendList(const std::string& jsonData)
     reader.parse(jsonData, value);
     for(auto& key : value.getMemberNames()){
         if(value[key.c_str()].isString()){
-            Contact tmpContact {value[key.c_str()].asCString(), std::stoi(key.c_str())};
+            Contact tmpContact {value[key.c_str()].asCString(), std::stoull(key.c_str())};
             friendList_.push_back(tmpContact);
         }
     }
@@ -146,6 +145,7 @@ void Messenger<Caller>::sendMessage(const std::string &receiver, const std::stri
     value["receiver"] = receiver;
     value["message"] = message;
     value["command"] = "sendMessage";
+    //value["time_sent"]
     handler_->callWrite(writer.write(value));
 }
 template <typename Caller>
@@ -157,7 +157,7 @@ void Messenger<Caller>::logout()
     handler_->callWrite(writer.write(value));
 }
 template <typename Caller>
-void Messenger<Caller>::setReceiveMessageCallback(std::function<void (Caller*, const std::string &, const std::string &)> callback)
+void Messenger<Caller>::setReceiveMessageCallback(std::function<void (Caller*, const QString &, unsigned long long)> callback)
 {
     senderCallback_= callback;
 }

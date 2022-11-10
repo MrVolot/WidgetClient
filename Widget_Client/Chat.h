@@ -1,5 +1,6 @@
 #pragma once
 
+#include <MessageWidget.h>
 #include <QWidget>
 
 namespace Ui {
@@ -11,16 +12,17 @@ class Chat : public QWidget
     Q_OBJECT
 
 public:
-    explicit Chat(const QString& nameArg, QWidget *parent = nullptr);
+    explicit Chat(const QString& nameArg, unsigned long long idArg, QWidget *parent = nullptr);
+    void receiveMessage(const QString& msg, unsigned long long idArg);
     ~Chat();
 
 private slots:
     void on_sendMsgBtn_clicked();
-
 private:
     Ui::Chat *ui;
-    std::string name;
+    QString name;
+    unsigned long long id;
 signals:
-    void sendMessage(const QString& msg, long long id);
+    void sendMessage(const QString& msg, unsigned long long id);
 };
 

@@ -27,6 +27,7 @@ D:/repos/Final_Messenger/WidgetClient/build-Widget_Client-Desktop_Qt_6_3_0_MSVC2
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qglobalstatic.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qhash.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qhashfunctions.h \
+  D:/QT/6.3.0/msvc2019_64/include/QtCore/qiodevice.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qiodevicebase.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qiterable.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qiterator.h \
@@ -73,6 +74,7 @@ D:/repos/Final_Messenger/WidgetClient/build-Widget_Client-Desktop_Qt_6_3_0_MSVC2
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qtextstream.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qtmetamacros.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qtypeinfo.h \
+  D:/QT/6.3.0/msvc2019_64/include/QtCore/qurl.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qutf8stringview.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qvariant.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qvarlengtharray.h \
@@ -90,21 +92,27 @@ D:/repos/Final_Messenger/WidgetClient/build-Widget_Client-Desktop_Qt_6_3_0_MSVC2
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qkeysequence.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qpaintdevice.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qpalette.h \
+  D:/QT/6.3.0/msvc2019_64/include/QtGui/qpicture.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qpixelformat.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qpixmap.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qpolygon.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qregion.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qrgb.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qrgba64.h \
+  D:/QT/6.3.0/msvc2019_64/include/QtGui/qtextdocument.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qtgui-config.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qtguiexports.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qtguiglobal.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qtransform.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qwindowdefs.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qwindowdefs_win.h \
+  D:/QT/6.3.0/msvc2019_64/include/QtWidgets/QLabel \
   D:/QT/6.3.0/msvc2019_64/include/QtWidgets/QWidget \
+  D:/QT/6.3.0/msvc2019_64/include/QtWidgets/qframe.h \
+  D:/QT/6.3.0/msvc2019_64/include/QtWidgets/qlabel.h \
   D:/QT/6.3.0/msvc2019_64/include/QtWidgets/qsizepolicy.h \
   D:/QT/6.3.0/msvc2019_64/include/QtWidgets/qtwidgets-config.h \
   D:/QT/6.3.0/msvc2019_64/include/QtWidgets/qtwidgetsexports.h \
   D:/QT/6.3.0/msvc2019_64/include/QtWidgets/qtwidgetsglobal.h \
-  D:/QT/6.3.0/msvc2019_64/include/QtWidgets/qwidget.h
+  D:/QT/6.3.0/msvc2019_64/include/QtWidgets/qwidget.h \
+  D:/repos/Final_Messenger/WidgetClient/Widget_Client/MessageWidget.h

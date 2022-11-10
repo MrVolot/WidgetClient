@@ -1074,6 +1074,7 @@ D:/repos/Final_Messenger/WidgetClient/build-Widget_Client-Desktop_Qt_6_3_0_MSVC2
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qglobalstatic.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qhash.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qhashfunctions.h \
+  D:/QT/6.3.0/msvc2019_64/include/QtCore/qiodevice.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qiodevicebase.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qitemselectionmodel.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qiterable.h \
@@ -1123,6 +1124,7 @@ D:/repos/Final_Messenger/WidgetClient/build-Widget_Client-Desktop_Qt_6_3_0_MSVC2
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qtextstream.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qtmetamacros.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qtypeinfo.h \
+  D:/QT/6.3.0/msvc2019_64/include/QtCore/qurl.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qutf8stringview.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qvariant.h \
   D:/QT/6.3.0/msvc2019_64/include/QtCore/qvarlengtharray.h \
@@ -1140,12 +1142,14 @@ D:/repos/Final_Messenger/WidgetClient/build-Widget_Client-Desktop_Qt_6_3_0_MSVC2
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qkeysequence.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qpaintdevice.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qpalette.h \
+  D:/QT/6.3.0/msvc2019_64/include/QtGui/qpicture.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qpixelformat.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qpixmap.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qpolygon.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qregion.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qrgb.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qrgba64.h \
+  D:/QT/6.3.0/msvc2019_64/include/QtGui/qtextdocument.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qtgui-config.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qtguiexports.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qtguiglobal.h \
@@ -1154,6 +1158,7 @@ D:/repos/Final_Messenger/WidgetClient/build-Widget_Client-Desktop_Qt_6_3_0_MSVC2
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qwindowdefs.h \
   D:/QT/6.3.0/msvc2019_64/include/QtGui/qwindowdefs_win.h \
   D:/QT/6.3.0/msvc2019_64/include/QtWidgets/QDialog \
+  D:/QT/6.3.0/msvc2019_64/include/QtWidgets/QLabel \
   D:/QT/6.3.0/msvc2019_64/include/QtWidgets/QListWidgetItem \
   D:/QT/6.3.0/msvc2019_64/include/QtWidgets/QMainWindow \
   D:/QT/6.3.0/msvc2019_64/include/QtWidgets/QWidget \
@@ -1164,6 +1169,7 @@ D:/repos/Final_Messenger/WidgetClient/build-Widget_Client-Desktop_Qt_6_3_0_MSVC2
   D:/QT/6.3.0/msvc2019_64/include/QtWidgets/qabstractspinbox.h \
   D:/QT/6.3.0/msvc2019_64/include/QtWidgets/qdialog.h \
   D:/QT/6.3.0/msvc2019_64/include/QtWidgets/qframe.h \
+  D:/QT/6.3.0/msvc2019_64/include/QtWidgets/qlabel.h \
   D:/QT/6.3.0/msvc2019_64/include/QtWidgets/qlistview.h \
   D:/QT/6.3.0/msvc2019_64/include/QtWidgets/qlistwidget.h \
   D:/QT/6.3.0/msvc2019_64/include/QtWidgets/qmainwindow.h \
@@ -1187,5 +1193,6 @@ D:/repos/Final_Messenger/WidgetClient/build-Widget_Client-Desktop_Qt_6_3_0_MSVC2
   D:/repos/Final_Messenger/WidgetClient/Widget_Client/Contact.h \
   D:/repos/Final_Messenger/WidgetClient/Widget_Client/ContactsWidget.h \
   D:/repos/Final_Messenger/WidgetClient/Widget_Client/Mainwindow.h \
+  D:/repos/Final_Messenger/WidgetClient/Widget_Client/MessageWidget.h \
   D:/repos/Final_Messenger/WidgetClient/Widget_Client/Messenger.h \
   D:/repos/Final_Messenger/WidgetClient/Widget_Client/RegisterDialog.h

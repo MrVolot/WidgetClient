@@ -2,5 +2,6 @@
 #include "EWIEGA46WW/moc_Chat.cpp"
 #include "EWIEGA46WW/moc_ContactsWidget.cpp"
 #include "EWIEGA46WW/moc_Mainwindow.cpp"
+#include "EWIEGA46WW/moc_MessageWidget.cpp"
 #include "EWIEGA46WW/moc_RegisterDialog.cpp"
 #include "EWIEGA46WW/moc_WindowManager.cpp"

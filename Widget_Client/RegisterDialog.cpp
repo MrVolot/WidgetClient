@@ -40,7 +40,7 @@ void RegisterDialog::writeCallback(std::shared_ptr<IConnectionHandler<RegisterDi
 void RegisterDialog::readCallback(std::shared_ptr<IConnectionHandler<RegisterDialog> > handler, const boost::system::error_code &err, size_t bytes_transferred)
 {
     serverResponseString_.erase();
-    serverResponseString_ = boost::asio::buffer_cast<const char*>(handler->getStrBuf()->data());
+    serverResponseString_ = handler->getData();
     cv_.notify_all();
 }
 
@@ -69,8 +69,7 @@ unsigned int RegisterDialog::checkServerResponse()
     if(!value["token"].empty()){
         hash_ = value["token"].asString();
     }
-    //return 0x0001;
-    return value["command"].asInt(); //this is what was
+    return value["command"].asInt();
 }
 
 unsigned int RegisterDialog::checkLoginData()

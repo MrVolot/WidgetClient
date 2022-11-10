@@ -17,14 +17,20 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(boost::asio::io_service& service, const std::string& hash, QWidget *parent = nullptr);
     ~MainWindow();
-
 private:
     Ui::MainWindow *ui;
     std::shared_ptr<Messenger<MainWindow>> messenger_;
     std::unique_ptr<Chat> chat;
-private slots:
+    std::mutex mtx;
+    std::condition_variable cv;
+    bool canProceed{false};
+    void sendMessageToChat(const QString& msg, unsigned long long id);
     void pushFriendListToGui(std::vector<Contact> friendList);
-    void on_listView_clicked(const QModelIndex &index);
-    void sendMessage(const QString& msg, long long id);
+
+private slots:
+    void sendMessage(const QString& msg, unsigned long long id);
     void on_contactListWidget_itemClicked(QListWidgetItem *item);
+    void createMessageInstance(const QString& msg, unsigned long long id);
+signals:
+    void createMessageInstanceSignal(const QString& msg, unsigned long long id);
 };

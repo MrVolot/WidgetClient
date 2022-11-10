@@ -8,7 +8,6 @@ class WindowManager: public QObject
 
     std::shared_ptr<RegisterDialog> registerDialog_;
     std::shared_ptr<MainWindow> mainWindow_;
-    //std::unique_ptr<QGuiApplication> app_;
     boost::asio::io_service& service_;
 public:
     WindowManager(boost::asio::io_service& service);

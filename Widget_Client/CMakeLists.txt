@@ -42,6 +42,9 @@ set(PROJECT_SOURCES
         ContactsWidget.h
         ContactsWidget.cpp
         ContactsWidget.ui
+        MessageWidget.h
+        MessageWidget.cpp
+        MessageWidget.ui
 )
 
 set(BOOST_LIBRARYDIR D:/Boost/boost-build/lib)

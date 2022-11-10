@@ -10,11 +10,11 @@ class ContactsWidget : public QWidget
 {
     Q_OBJECT
     QString name_;
-    long long id_;
+    unsigned long long id_;
 public:
-    explicit ContactsWidget(const QString& name, long long id, QWidget *parent = nullptr);
+    explicit ContactsWidget(const QString& name, unsigned long long id, QWidget *parent = nullptr);
     QString& getName();
-    long long getId();
+    unsigned long long getId();
     ~ContactsWidget();
 
 private:

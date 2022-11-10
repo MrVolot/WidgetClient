@@ -1,7 +1,7 @@
 #include "ContactsWidget.h"
 #include "ui_ContactsWidget.h"
 
-ContactsWidget::ContactsWidget(const QString& name, long long id, QWidget *parent) :
+ContactsWidget::ContactsWidget(const QString& name, unsigned long long id, QWidget *parent) :
     name_{name},
     id_{id},
     QWidget(parent),
@@ -20,7 +20,7 @@ QString &ContactsWidget::getName()
     return name_;
 }
 
-long long ContactsWidget::getId()
+unsigned long long ContactsWidget::getId()
 {
     return id_;
 }

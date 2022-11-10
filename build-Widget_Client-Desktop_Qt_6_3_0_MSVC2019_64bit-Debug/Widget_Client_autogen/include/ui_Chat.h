@@ -14,8 +14,8 @@
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
+#include <QtWidgets/QListWidget>
 #include <QtWidgets/QPushButton>
-#include <QtWidgets/QTextBrowser>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 
@@ -27,7 +27,7 @@ public:
     QVBoxLayout *verticalLayout_3;
     QVBoxLayout *verticalLayout_2;
     QLabel *receiverName;
-    QTextBrowser *textBrowser;
+    QListWidget *messageList;
     QHBoxLayout *horizontalLayout;
     QLineEdit *msgFiled;
     QPushButton *sendMsgBtn;
@@ -37,6 +37,7 @@ public:
         if (Chat->objectName().isEmpty())
             Chat->setObjectName(QString::fromUtf8("Chat"));
         Chat->resize(543, 392);
+        Chat->setMinimumSize(QSize(200, 0));
         verticalLayout_3 = new QVBoxLayout(Chat);
         verticalLayout_3->setObjectName(QString::fromUtf8("verticalLayout_3"));
         verticalLayout_2 = new QVBoxLayout();
@@ -46,10 +47,10 @@ public:
 
         verticalLayout_2->addWidget(receiverName);
 
-        textBrowser = new QTextBrowser(Chat);
-        textBrowser->setObjectName(QString::fromUtf8("textBrowser"));
+        messageList = new QListWidget(Chat);
+        messageList->setObjectName(QString::fromUtf8("messageList"));
 
-        verticalLayout_2->addWidget(textBrowser);
+        verticalLayout_2->addWidget(messageList);
 
         horizontalLayout = new QHBoxLayout();
         horizontalLayout->setObjectName(QString::fromUtf8("horizontalLayout"));
