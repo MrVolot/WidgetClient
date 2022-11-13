@@ -1,6 +1,0 @@
-{
-"ipLoginServer": "127.0.0.1",
-"portLoginServer": "10696",
-"ipServer": "127.0.0.1",
-"portServer": "10690"
-}
