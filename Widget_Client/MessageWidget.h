@@ -13,7 +13,6 @@ class MessageWidget : public QWidget
 public:
     explicit MessageWidget(const QString& text, const QString& time, QWidget *parent = nullptr);
     ~MessageWidget();
-
 private:
     Ui::MessageWidget *ui;
 };
