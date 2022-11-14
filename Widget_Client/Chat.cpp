@@ -22,6 +22,7 @@ Chat::~Chat()
 void Chat::on_sendMsgBtn_clicked()
 {
     QString meesageToSend{ui->msgFiled->text()};
+    receiveMessage(meesageToSend, 0);
     ui->msgFiled->clear();
     emit sendMessage(meesageToSend, id);
 }
