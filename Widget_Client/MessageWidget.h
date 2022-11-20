@@ -11,7 +11,9 @@ class MessageWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit MessageWidget(const QString& text, const QString& time, QWidget *parent = nullptr);
+    explicit MessageWidget(const QString& text, const QString& time, bool isAuthor, QWidget *parent = nullptr);
+    void setTextAllignment();
+    void setText(const QString& text, const QString& time,bool isAuthor);
     ~MessageWidget();
 private:
     Ui::MessageWidget *ui;

@@ -21,13 +21,15 @@ Chat::~Chat()
 
 void Chat::on_sendMsgBtn_clicked()
 {
-    QString meesageToSend{ui->msgFiled->text()};
-    receiveMessage(meesageToSend, 0);
-    ui->msgFiled->clear();
-    emit sendMessage(meesageToSend, id);
+    if(!ui->msgFiled->text().isEmpty()){
+        QString meesageToSend{ui->msgFiled->text()};
+        receiveMessage(meesageToSend, 0);
+        ui->msgFiled->clear();
+        emit sendMessage(meesageToSend, id);
+    }
 }
 
-void Chat::receiveMessage(const QString &msg, unsigned long long idArg)
+void Chat::receiveMessage(const QString &msg, unsigned long long idArg, bool isAuthor)
 {
     auto item {new QListWidgetItem{}};
     auto now = std::chrono::system_clock::now();
@@ -35,9 +37,19 @@ void Chat::receiveMessage(const QString &msg, unsigned long long idArg)
 
     std::stringstream ss;
     ss << std::put_time(std::localtime(&in_time_t), "%R");
-    MessageWidget* msgWidget{new MessageWidget{msg, ss.str().c_str()}};
+    MessageWidget* msgWidget{new MessageWidget{msg, ss.str().c_str(), isAuthor}};
+    if(!isAuthor){
+        msgWidget->setTextAllignment();
+    }
     item->setSizeHint(msgWidget->sizeHint());
     ui->messageList->addItem(item);
     ui->messageList->setItemWidget(item, msgWidget);
+    ui->messageList->scrollToBottom();
+}
+
+
+void Chat::on_msgFiled_returnPressed()
+{
+    on_sendMsgBtn_clicked();
 }
 
