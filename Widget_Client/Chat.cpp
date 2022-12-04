@@ -37,9 +37,6 @@ void Chat::receiveMessage(const QString &msg, unsigned long long idArg, bool isA
     processMessage(msg, isAuthor);
     for(auto& n : vectorOfMessages){
         auto item {new QListWidgetItem{}};
-        if(isAuthor){
-            n->setTextAllignment();
-        }
         item->setSizeHint(n->sizeHint());
         ui->messageList->addItem(item);
         ui->messageList->setItemWidget(item, n);
