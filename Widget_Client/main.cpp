@@ -1,5 +1,3 @@
-//#include "Mainwindow.h"
-
 #include <QApplication>
 #include "IoServiceWorker.h"
 #include "WindowManager.h"

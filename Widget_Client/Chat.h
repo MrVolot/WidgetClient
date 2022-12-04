@@ -24,6 +24,14 @@ private:
     Ui::Chat *ui;
     QString name;
     unsigned long long id;
+    std::vector<MessageWidget*> vectorOfMessages;
+
+    void processMessage(const QString &msg, bool isAuthor);
+    int getClosestPunctuationMarkPosition(const QString &msg, bool isLeftToRight);
+    void splitIntoMessages(const QString &msg, bool isAuthor);
+    bool hasSpaces(const QString& str);
+    QString getCurrentTime();
+    QString createWrap(const QString& str);
 signals:
     void sendMessage(const QString& msg, unsigned long long id);
 };

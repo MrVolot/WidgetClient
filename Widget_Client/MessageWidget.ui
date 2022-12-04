@@ -25,6 +25,9 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <property name="sizeConstraint">
     <enum>QLayout::SetMinimumSize</enum>
@@ -98,6 +101,9 @@
    </item>
    <item>
     <layout class="QVBoxLayout" name="msgLayoutRight">
+     <property name="spacing">
+      <number>0</number>
+     </property>
      <item>
       <widget class="QLabel" name="messageRight">
        <property name="enabled">
@@ -115,6 +121,13 @@
          <height>16777215</height>
         </size>
        </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: #66ACE1;
+border-top-left-radius :10px;
+border-top-right-radius : 10px; 
+padding: 2px;
+</string>
+       </property>
        <property name="text">
         <string/>
        </property>
@@ -124,6 +137,13 @@
       <widget class="QLabel" name="timeRight">
        <property name="enabled">
         <bool>true</bool>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: #66ACE1;
+border-bottom-left-radius : 10px; 
+border-bottom-right-radius : 100px;
+padding: 2px;
+</string>
        </property>
        <property name="text">
         <string/>

@@ -11,15 +11,9 @@ MessageWidget::MessageWidget(const QString& text, const QString& time, bool isAu
     setText(text, time, isAuthor);
 }
 
-void MessageWidget::setTextAllignment()
-{
-    //ui->messageRight->setAlignment(Qt::AlignLeft);
-    //ui->msgLayout->setAlignment(Qt::AlignRight);
-}
-
 void MessageWidget::setText(const QString& text, const QString& time,bool isAuthor)
 {
-    if(isAuthor){
+    if(!isAuthor){
         ui->message->setText(text);
         ui->time->setText(time);
         return;
