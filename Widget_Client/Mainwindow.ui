@@ -84,6 +84,9 @@
             <height>0</height>
            </size>
           </property>
+          <property name="lineWidth">
+           <number>0</number>
+          </property>
          </widget>
         </item>
        </layout>

@@ -10,7 +10,7 @@ MainWindow::MainWindow(boost::asio::io_service& service, const std::string& hash
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    ui->splitter->setSizes(QList<int>({1,200}));
+    ui->splitter->setSizes(QList<int>({1,500}));
     ui->splitter->setCollapsible(0, false);
     ui->splitter->setCollapsible(1, false);
     messenger_.reset(new Messenger<MainWindow>{service, hash, this});
@@ -62,6 +62,6 @@ void MainWindow::on_contactListWidget_itemClicked(QListWidgetItem *item)
 
 void MainWindow::createMessageInstance(const QString &msg, unsigned long long id)
 {
-    chat->receiveMessage(msg, id);
+    chat->receiveMessage(msg, id, false);
 }
 
