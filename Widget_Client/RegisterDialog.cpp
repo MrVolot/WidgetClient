@@ -39,8 +39,14 @@ void RegisterDialog::writeCallback(std::shared_ptr<IConnectionHandler<RegisterDi
 
 void RegisterDialog::readCallback(std::shared_ptr<IConnectionHandler<RegisterDialog> > handler, const boost::system::error_code &err, size_t bytes_transferred)
 {
+    if(err){
+        handler_->getSocket().close();
+        return;
+    }
     serverResponseString_.erase();
     serverResponseString_ = handler->getData();
+    handler->resetStrBuf();
+    handler->callAsyncRead();
     cv_.notify_all();
 }
 
@@ -49,6 +55,7 @@ void RegisterDialog::init(const boost::system::error_code& erCode)
     if(erCode){
         qDebug()<<erCode.message().c_str();
     }
+    handler_->callAsyncRead();
 }
 
 void RegisterDialog::initializeConnection()
@@ -105,7 +112,6 @@ void RegisterDialog::on_LoginButton_clicked()
     value["deviceId"] = createDeviceId();
     value["password"] = ui->Password->text().toStdString();
     handler_->callWrite(writer_.write(value));
-    handler_->callAsyncRead();
     std::unique_lock<std::mutex> locker{mtx_};
     cv_.wait(locker);
     auto serverResponse {checkServerResponse()};

@@ -122,11 +122,7 @@
         </size>
        </property>
        <property name="styleSheet">
-        <string notr="true">background-color: #66ACE1;
-border-top-left-radius :10px;
-border-top-right-radius : 10px; 
-padding: 2px;
-</string>
+        <string notr="true"/>
        </property>
        <property name="text">
         <string/>
@@ -139,11 +135,7 @@ padding: 2px;
         <bool>true</bool>
        </property>
        <property name="styleSheet">
-        <string notr="true">background-color: #66ACE1;
-border-bottom-left-radius : 10px; 
-border-bottom-right-radius : 100px;
-padding: 2px;
-</string>
+        <string notr="true"/>
        </property>
        <property name="text">
         <string/>

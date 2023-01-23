@@ -30,7 +30,7 @@ private:
 private slots:
     void sendMessage(const QString& msg, unsigned long long id);
     void on_contactListWidget_itemClicked(QListWidgetItem *item);
-    void createMessageInstance(const QString& msg, unsigned long long id);
+    void createMessageInstance(const QString& msg);
 signals:
-    void createMessageInstanceSignal(const QString& msg, unsigned long long id);
+    void createMessageInstanceSignal(const QString& msg);
 };

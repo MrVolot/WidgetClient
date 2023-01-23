@@ -21,7 +21,8 @@ class Messenger: public std::enable_shared_from_this<Messenger<Caller>>
     Caller* caller_;
     Config config_;
     std::vector<Contact> friendList_;
-
+    //std::vector<std::vector<QString>> chatHistoryVector_;
+    std::vector<std::map<std::string, QString>> chatHistoryVector_;
 
     std::function<void(Caller*, const QString&, unsigned long long)> senderCallback_;
 
@@ -31,6 +32,7 @@ class Messenger: public std::enable_shared_from_this<Messenger<Caller>>
     void parseServerCommands(const std::string& data);
     void receiveMessage(const std::string& data);
     void fillFriendList(const std::string& jsonData);
+    void fillChatHistory(const std::string& jsonData);
 public:
     bool infoIsLoaded;
 
@@ -41,6 +43,8 @@ public:
     void logout();
     void setReceiveMessageCallback(std::function<void(Caller*, const QString&, unsigned long long)> callback);
     std::vector<Contact>& getFriendList();
+    void requestChatHistory(long long id);
+    std::vector<std::map<std::string, QString>>& getChatHistory();
 };
 
 template <typename Caller>
@@ -105,6 +109,9 @@ void Messenger<Caller>::parseServerCommands(const std::string &data)
     case FRIENDLIST:
         fillFriendList(data);
         break;
+    case GETCHAT:
+        fillChatHistory(data);
+        break;
     }
 
 }
@@ -144,7 +151,7 @@ void Messenger<Caller>::sendMessage(const std::string &receiver, const std::stri
     Json::FastWriter writer;
     value["receiver"] = receiver;
     value["message"] = message;
-    value["command"] = "sendMessage";
+    value["command"] = SENDMESSAGE;
     //value["time_sent"]
     handler_->callWrite(writer.write(value));
 }
@@ -164,4 +171,34 @@ void Messenger<Caller>::setReceiveMessageCallback(std::function<void (Caller*, c
 template <typename Caller>
 std::vector<Contact>& Messenger<Caller>::getFriendList(){
     return friendList_;
+}
+
+template <typename Caller>
+void Messenger<Caller>::requestChatHistory(long long id){
+    Json::Value value;
+    Json::FastWriter writer;
+    value["receiver"] = std::to_string(id);
+    value["command"] = GETCHAT;
+    handler_->callWrite(writer.write(value));
+}
+
+template <typename Caller>
+void Messenger<Caller>::fillChatHistory(const std::string& jsonData){
+    Json::Reader reader;
+    Json::Value value;
+    reader.parse(jsonData, value, false);
+    chatHistoryVector_.clear();
+    for(auto& valueArray : value["data"]){
+        std::map<std::string, QString> tmpMap;
+        for(auto& key : valueArray.getMemberNames()){
+            tmpMap[key] = valueArray[key].asCString();
+        }
+        chatHistoryVector_.push_back(tmpMap);
+    }
+    infoIsLoaded = false;
+}
+
+template <typename Caller>
+std::vector<std::map<std::string, QString>>& Messenger<Caller>::getChatHistory(){
+    return chatHistoryVector_;
 }

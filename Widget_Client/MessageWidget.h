@@ -13,6 +13,7 @@ class MessageWidget : public QWidget
 public:
     explicit MessageWidget(const QString& text, const QString& time, bool isAuthor, QWidget *parent = nullptr);
     void setText(const QString& text, const QString& time,bool isAuthor);
+    QString getText();
     ~MessageWidget();
 private:
     Ui::MessageWidget *ui;

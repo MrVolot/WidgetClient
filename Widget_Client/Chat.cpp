@@ -1,8 +1,10 @@
 ﻿#include "Chat.h"
 #include "ui_Chat.h"
+#include "MessagesDateWidget.h"
 #include <sstream>
 #include <iomanip>
 #include <iterator>
+#include <QDate>
 
 Chat::Chat(const QString& nameArg, unsigned long long idArg, QWidget *parent) :
     QWidget(parent),
@@ -22,27 +24,71 @@ Chat::~Chat()
     delete ui;
 }
 
-void Chat::on_sendMsgBtn_clicked()
+void Chat::loadChatHistory(std::vector<std::map<std::string, QString> > &chatHistory)
 {
-    if(!ui->msgFiled->text().isEmpty()){
-        QString meesageToSend{ui->msgFiled->text()};
-        receiveMessage(meesageToSend, 0);
-        ui->msgFiled->clear();
-        emit sendMessage(meesageToSend, id);
+    QDateTime previousDateTime{};
+    for(auto& messageEntity : chatHistory){
+        std::string time{messageEntity["time"].toStdString()};
+        time = time.substr(0, time.find("+")-4);
+        auto correctTime {QDateTime::fromString(QString::fromStdString(time), "yyyy-MM-dd hh:mm")};
+        bool result{messageEntity["receiver"].toStdString() != std::to_string(id)};
+        auto currentDateTime{QDateTime::currentDateTime()};
+        bool createDateWidget {false};
+        if(previousDateTime.date() != correctTime.date()){
+            previousDateTime = correctTime;
+            createDateWidget = true;
+        }
+        receiveMessage(messageEntity["message"], correctTime, createDateWidget, !result);
     }
 }
 
-void Chat::receiveMessage(const QString &msg, unsigned long long idArg, bool isAuthor)
+void Chat::on_sendMsgBtn_clicked()
 {
-    processMessage(msg, isAuthor);
-    for(auto& n : vectorOfMessages){
-        auto item {new QListWidgetItem{}};
-        item->setSizeHint(n->sizeHint());
-        ui->messageList->addItem(item);
-        ui->messageList->setItemWidget(item, n);
+    auto currentDateTime{QDateTime::currentDateTime()};
+    if(lastMessageDateTime.date() != currentDateTime.date()){
+        MessagesDateWidget* dateWidget{new MessagesDateWidget{currentDateTime}};
+        auto item2 {new QListWidgetItem{}};
+        item2->setSizeHint(dateWidget->sizeHint());
+        ui->messageList->addItem(item2);
+        ui->messageList->setItemWidget(item2, dateWidget);
+        lastMessageDateTime = currentDateTime;
     }
+    if(!ui->msgFiled->text().isEmpty()){
+        QString meesageToSend{ui->msgFiled->text()};
+        processMessage(meesageToSend, true);
+        for(auto& n : vectorOfMessages){
+            auto item {new QListWidgetItem{}};
+            item->setSizeHint(n->sizeHint());
+            ui->messageList->addItem(item);
+            ui->messageList->setItemWidget(item, n);
+            emit sendMessage(n->getText(), id);
+        }
+        ui->messageList->scrollToBottom();
+        ui->msgFiled->clear();
+        vectorOfMessages.clear();
+    }
+}
+
+void Chat::receiveMessage(const QString &msg, const QDateTime& sentTime, bool createDateWidget, bool isAuthor)
+{
+    auto item {new QListWidgetItem{}};
+    auto correctTime{sentTime.time().toString()};
+    correctTime.chop(3);
+    MessageWidget* tmpWidget{new MessageWidget{msg, correctTime, isAuthor}};
+    if(createDateWidget || lastMessageDateTime.date() != sentTime.date()){
+        MessagesDateWidget* dateWidget{new MessagesDateWidget{sentTime}};
+        auto item2 {new QListWidgetItem{}};
+        item2->setSizeHint(dateWidget->sizeHint());
+        ui->messageList->addItem(item2);
+        ui->messageList->setItemWidget(item2, dateWidget);
+    }
+
+    item->setSizeHint(tmpWidget->sizeHint());
+    ui->messageList->addItem(item);
+    ui->messageList->setItemWidget(item, tmpWidget);
     ui->messageList->scrollToBottom();
     vectorOfMessages.clear();
+    lastMessageDateTime = sentTime;
 }
 
 
@@ -99,7 +145,6 @@ void Chat::splitIntoMessages(const QString &msg, bool isAuthor)
     auto rightPunctuations{getClosestPunctuationMarkPosition(textToRight, false)};
     auto toTheLeft{ limit -  leftPunctuations};
     auto toTheRight{ rightPunctuations };
-    qDebug()<< toTheLeft << "" << toTheRight;
     QString newString {};
     if (toTheLeft < toTheRight) {
         newString = msg.mid(0, limit - toTheLeft +1);
@@ -146,5 +191,13 @@ QString Chat::createWrap(const QString &str)
         workingString.append(str[i]);
     }
     return workingString;
+}
+
+std::chrono::system_clock::time_point Chat::getChronoTime(const std::string &timeStr)
+{
+    std::tm tm = {};
+    std::stringstream ss(timeStr);
+    ss >> std::get_time(&tm, "%Y %m %d %H:%M:%S");
+    return std::chrono::system_clock::from_time_t(std::mktime(&tm));
 }
 

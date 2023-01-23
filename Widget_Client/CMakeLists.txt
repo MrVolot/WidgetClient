@@ -45,6 +45,9 @@ set(PROJECT_SOURCES
         MessageWidget.h
         MessageWidget.cpp
         MessageWidget.ui
+        MessagesDateWidget.h
+        MessagesDateWidget.cpp
+        MessagesDateWidget.ui
 )
 
 set(BOOST_LIBRARYDIR D:/Boost/boost-build/lib)

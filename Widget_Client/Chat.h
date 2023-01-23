@@ -2,6 +2,7 @@
 
 #include <MessageWidget.h>
 #include <QWidget>
+#include <QDateTime>
 
 namespace Ui {
 class Chat;
@@ -13,8 +14,10 @@ class Chat : public QWidget
 
 public:
     explicit Chat(const QString& nameArg, unsigned long long idArg, QWidget *parent = nullptr);
-    void receiveMessage(const QString& msg, unsigned long long idArg, bool isAuthor = true);
+    void receiveMessage(const QString& msg, const QDateTime& sentTime, bool createDateWidget, bool isAuthor = true);
     ~Chat();
+    void loadChatHistory(std::vector<std::map<std::string, QString>>& chatHistory);
+    QString getCurrentTime();
 
 private slots:
     void on_sendMsgBtn_clicked();
@@ -25,13 +28,14 @@ private:
     QString name;
     unsigned long long id;
     std::vector<MessageWidget*> vectorOfMessages;
+    QDateTime lastMessageDateTime;
 
     void processMessage(const QString &msg, bool isAuthor);
     int getClosestPunctuationMarkPosition(const QString &msg, bool isLeftToRight);
     void splitIntoMessages(const QString &msg, bool isAuthor);
     bool hasSpaces(const QString& str);
-    QString getCurrentTime();
     QString createWrap(const QString& str);
+    std::chrono::system_clock::time_point getChronoTime(const std::string& timeStr);
 signals:
     void sendMessage(const QString& msg, unsigned long long id);
 };

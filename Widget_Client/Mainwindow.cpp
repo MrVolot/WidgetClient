@@ -4,6 +4,7 @@
 #include <QStringListModel>
 #include <QString>
 #include <IoServiceWorker.h>
+#include <QDateTime>
 
 MainWindow::MainWindow(boost::asio::io_service& service, const std::string& hash, QWidget *parent)
     : QMainWindow(parent)
@@ -31,7 +32,7 @@ void MainWindow::sendMessageToChat(const QString &msg, unsigned long long id)
 {
     auto friendList{messenger_->getFriendList()};
     auto contact{std::find_if(friendList.begin(), friendList.end(), [&](Contact& tmpContact){qDebug() << tmpContact.getId()<< " "<< id;return tmpContact.getId() == id;})};
-    emit createMessageInstanceSignal(msg, contact->getId());
+    emit createMessageInstanceSignal(msg);
 }
 
 void MainWindow::pushFriendListToGui(std::vector<Contact> friendList)
@@ -54,14 +55,18 @@ void MainWindow::sendMessage(const QString &msg, unsigned long long id)
 void MainWindow::on_contactListWidget_itemClicked(QListWidgetItem *item)
 {
     auto contact{dynamic_cast<ContactsWidget*>(ui->contactListWidget->itemWidget(item))};
+    messenger_->requestChatHistory(contact->getId());
+    messenger_->infoIsLoaded = true;
+    while(messenger_->infoIsLoaded);
+    auto chatHistory{messenger_->getChatHistory()};
     chat.reset(new Chat{contact->getName(), contact->getId()});
     connect(&(*chat), &Chat::sendMessage, this, &MainWindow::sendMessage);
     ui->chatLayout->addWidget(chat.get());
-
+    chat->loadChatHistory(chatHistory);
 }
 
-void MainWindow::createMessageInstance(const QString &msg, unsigned long long id)
+void MainWindow::createMessageInstance(const QString &msg)
 {
-    chat->receiveMessage(msg, id, false);
+    chat->receiveMessage(msg, QDateTime::currentDateTime(), false, false);
 }
 
