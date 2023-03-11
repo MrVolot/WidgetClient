@@ -71,11 +71,13 @@ void Chat::on_sendMsgBtn_clicked()
 
 void Chat::receiveMessage(const QString &msg, const QDateTime& sentTime, bool createDateWidget, bool isAuthor)
 {
+    try{
     auto item {new QListWidgetItem{}};
     auto correctTime{sentTime.time().toString()};
     correctTime.chop(3);
     MessageWidget* tmpWidget{new MessageWidget{msg, correctTime, isAuthor}};
-    if(createDateWidget || lastMessageDateTime.date() != sentTime.date()){
+
+    if(createDateWidget || (!lastMessageDateTime.isNull() && lastMessageDateTime.date() != sentTime.date())){
         MessagesDateWidget* dateWidget{new MessagesDateWidget{sentTime}};
         auto item2 {new QListWidgetItem{}};
         item2->setSizeHint(dateWidget->sizeHint());
@@ -89,6 +91,9 @@ void Chat::receiveMessage(const QString &msg, const QDateTime& sentTime, bool cr
     ui->messageList->scrollToBottom();
     vectorOfMessages.clear();
     lastMessageDateTime = sentTime;
+    }catch(std::exception& exc){
+        qDebug()<<exc.what();
+    }
 }
 
 
@@ -185,7 +190,7 @@ QString Chat::createWrap(const QString &str)
     auto stringSize{str.size()};
     QString workingString{};
     for(int i{0}; i < stringSize; i++){
-        if(i%30==0){
+        if(i%30==0 && i!=0){
             workingString.append("\n");
         }
         workingString.append(str[i]);

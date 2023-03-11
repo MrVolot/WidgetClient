@@ -21,7 +21,6 @@ class Messenger: public std::enable_shared_from_this<Messenger<Caller>>
     Caller* caller_;
     Config config_;
     std::vector<Contact> friendList_;
-    //std::vector<std::vector<QString>> chatHistoryVector_;
     std::vector<std::map<std::string, QString>> chatHistoryVector_;
 
     std::function<void(Caller*, const QString&, unsigned long long)> senderCallback_;
@@ -131,11 +130,16 @@ void Messenger<Caller>::fillFriendList(const std::string& jsonData)
     Json::Reader reader;
     Json::Value value;
     reader.parse(jsonData, value);
-    for(auto& key : value.getMemberNames()){
-        if(value[key.c_str()].isString()){
-            Contact tmpContact {value[key.c_str()].asCString(), std::stoull(key.c_str())};
-            friendList_.push_back(tmpContact);
+    auto dataArray{value["data"]};
+    for(auto& dataValue : dataArray){
+        QString lastMessage{""};
+        unsigned long long senderId{};
+        if(!dataValue["lastMessage"]["message"].empty()){
+            lastMessage = dataValue["lastMessage"]["message"].asCString();
+            senderId = dataValue["lastMessage"]["sender"].asUInt64();
         }
+        Contact tmpContact {dataValue["name"].asCString(), dataValue["id"].asUInt64(), {senderId, lastMessage}};
+        friendList_.push_back(tmpContact);
     }
     infoIsLoaded = false;
 }
@@ -152,7 +156,6 @@ void Messenger<Caller>::sendMessage(const std::string &receiver, const std::stri
     value["receiver"] = receiver;
     value["message"] = message;
     value["command"] = SENDMESSAGE;
-    //value["time_sent"]
     handler_->callWrite(writer.write(value));
 }
 template <typename Caller>

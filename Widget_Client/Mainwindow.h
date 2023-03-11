@@ -5,6 +5,7 @@
 #include "boost/asio.hpp"
 #include "Messenger.h"
 #include "Chat.h"
+#include "NotificationWidget.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -20,17 +21,21 @@ public:
 private:
     Ui::MainWindow *ui;
     std::shared_ptr<Messenger<MainWindow>> messenger_;
-    std::unique_ptr<Chat> chat;
+    std::map<unsigned long long, std::unique_ptr<Chat>> chatsMap;
     std::mutex mtx;
     std::condition_variable cv;
+    unsigned long long currentFriend=0;
+    NotificationWidget* notificationWidget;
+
     bool canProceed{false};
     void sendMessageToChat(const QString& msg, unsigned long long id);
     void pushFriendListToGui(std::vector<Contact> friendList);
+    ContactsWidget* findFriendById(unsigned long long id);
 
 private slots:
     void sendMessage(const QString& msg, unsigned long long id);
     void on_contactListWidget_itemClicked(QListWidgetItem *item);
-    void createMessageInstance(const QString& msg);
+    void createMessageInstance(const QString& msg, unsigned long long id);
 signals:
-    void createMessageInstanceSignal(const QString& msg);
+    void createMessageInstanceSignal(const QString& msg, unsigned long long id);
 };

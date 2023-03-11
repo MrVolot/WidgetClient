@@ -10,7 +10,12 @@ unsigned long long Contact::getId()
     return id_;
 }
 
-Contact::Contact(const QString& name, unsigned long long id): name_{name}, id_{id}
+std::pair<unsigned long long, const QString&> Contact::getLastMessageInfo()
+{
+    return lastMessageInfo_;
+}
+
+Contact::Contact(const QString& name, unsigned long long id, std::pair<unsigned long long, QString> lastMessageInfo): name_{name}, id_{id}, lastMessageInfo_{lastMessageInfo}
 {
 
 }
