@@ -26,7 +26,6 @@ private:
     std::mutex mtx;
     std::condition_variable cv;
     unsigned long long currentFriend=0;
-//    NotificationWidget* notificationWidget;
 
     bool canProceed{false};
     void sendMessageToChat(const QString& msg, unsigned long long id);

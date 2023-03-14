@@ -12,7 +12,6 @@ class ContactsWidget : public QWidget
     Q_OBJECT
 
 public:
-    //explicit ContactsWidget(const QString& name, unsigned long long id, std::pair<unsigned long long, QString> lastMessageInfo, QWidget *parent = nullptr);
     explicit ContactsWidget(Contact contact, QWidget *parent = nullptr);
     ~ContactsWidget();
     Contact& getContact();
