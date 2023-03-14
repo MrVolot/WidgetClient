@@ -19,6 +19,66 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">QMainWindow {
+    background-color: #1e1f2a;
+    color: #dde2e8;
+}
+
+QListWidget {
+    background-color: #282c34;
+    color: #dde2e8;
+    border: none;
+    outline: none;
+}
+
+QListWidget::item:selected {
+    background-color: #3a3f4b;
+  border-radius: 5px;
+}
+
+QListWidget::item:hover {
+    background-color: #3a3f4b;
+  border-radius: 5px;
+}
+
+QScrollBar:vertical {
+    width: 6px;
+    border-radius: 3px;
+    background: none;
+}
+
+QScrollBar::handle:vertical {
+    background-color: #81a1c1;
+    border-radius: 3px;
+}
+
+QScrollBar::add-line:vertical {
+    border-radius: 3px;
+    background: none;
+}
+
+QScrollBar::sub-line:vertical {
+    border-radius: 3px;
+    background: none;
+}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: none;
+}
+
+QHeaderView::section {
+    background-color: #282c34;
+    color: #dde2e8;
+    border: none;
+    padding: 5px;
+    font-weight: bold;
+}
+
+QLabel {
+    color: #ffffff;
+}</string>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
     <property name="spacing">
@@ -83,6 +143,9 @@
             <width>200</width>
             <height>0</height>
            </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true"/>
           </property>
           <property name="lineWidth">
            <number>0</number>

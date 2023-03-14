@@ -4,7 +4,6 @@
 #include <QString>
 #include <IoServiceWorker.h>
 #include <QDateTime>
-#include <QSystemTrayIcon>
 
 MainWindow::MainWindow(boost::asio::io_service& service, const std::string& hash, QWidget *parent)
     : QMainWindow(parent)
@@ -20,8 +19,6 @@ MainWindow::MainWindow(boost::asio::io_service& service, const std::string& hash
     while(messenger_->infoIsLoaded);
     pushFriendListToGui(messenger_->getFriendList());
     connect(this, &MainWindow::createMessageInstanceSignal, this, &MainWindow::createMessageInstance);
-
-    notificationWidget = new NotificationWidget();
 }
 
 MainWindow::~MainWindow()
@@ -43,7 +40,7 @@ void MainWindow::pushFriendListToGui(std::vector<Contact> friendList)
 {
     for(auto& contactItem : friendList){
         auto item {new QListWidgetItem{}};
-        ContactsWidget* contact{new ContactsWidget{contactItem.getName(), contactItem.getId(), contactItem.getLastMessageInfo()}};
+        ContactsWidget* contact{new ContactsWidget{contactItem}};
         item->setSizeHint(contact->sizeHint());
         ui->contactListWidget->addItem(item);
         ui->contactListWidget->setItemWidget(item, contact);
@@ -51,16 +48,37 @@ void MainWindow::pushFriendListToGui(std::vector<Contact> friendList)
 }
 
 //Function used to get widget related to specified friend
-ContactsWidget* MainWindow::findFriendById(unsigned long long id)
+std::optional<std::pair<QListWidgetItem*, ContactsWidget*>> MainWindow::findFriendById(unsigned long long id)
 {
     for (int i = 0; i < ui->contactListWidget->count(); ++i) {
         QListWidgetItem* item =  ui->contactListWidget->item(i);
         ContactsWidget* contactsWidget = qobject_cast<ContactsWidget*>( ui->contactListWidget->itemWidget(item));
-        if (contactsWidget && contactsWidget->getId() == id) {
-            return contactsWidget;
+        if (contactsWidget && contactsWidget->getContact().getId() == id) {
+            return std::make_pair(item, contactsWidget);
         }
     }
-    return nullptr;
+    return {};
+}
+
+void MainWindow::loadChatInfo(const QString &name, unsigned long long id)
+{
+    if(currentFriend == id){
+        return;
+    }
+    messenger_->requestChatHistory(id);
+    messenger_->infoIsLoaded = true;
+    while(messenger_->infoIsLoaded);
+    auto chatHistory{messenger_->getChatHistory()};
+    chatsMap[id].reset(new Chat{name, id});
+    connect(&(*(chatsMap[id])), &Chat::sendMessage, this, &MainWindow::sendMessage);
+    if(currentFriend!=0){
+        chatsMap[currentFriend]->setVisible(false);
+        ui->chatLayout->replaceWidget(chatsMap[currentFriend].get(), chatsMap[id].get());
+    }else{
+        ui->chatLayout->addWidget(chatsMap[id].get());
+    }
+    chatsMap[id]->loadChatHistory(chatHistory);
+    currentFriend = id;
 }
 
 void MainWindow::sendMessage(const QString &msg, unsigned long long id)
@@ -74,24 +92,11 @@ void MainWindow::sendMessage(const QString &msg, unsigned long long id)
 
 void MainWindow::on_contactListWidget_itemClicked(QListWidgetItem *item)
 {
-    auto contact{dynamic_cast<ContactsWidget*>(ui->contactListWidget->itemWidget(item))};
-    if(contact->getId() == currentFriend){
+    auto contact{dynamic_cast<ContactsWidget*>(ui->contactListWidget->itemWidget(item))->getContact()};
+    if(contact.getId() == currentFriend){
         return;
     }
-    messenger_->requestChatHistory(contact->getId());
-    messenger_->infoIsLoaded = true;
-    while(messenger_->infoIsLoaded);
-    auto chatHistory{messenger_->getChatHistory()};
-    chatsMap[contact->getId()].reset(new Chat{contact->getName(), contact->getId()});
-    connect(&(*(chatsMap[contact->getId()])), &Chat::sendMessage, this, &MainWindow::sendMessage);
-    if(currentFriend!=0){
-        chatsMap[currentFriend]->setVisible(false);
-        ui->chatLayout->replaceWidget(chatsMap[currentFriend].get(), chatsMap[contact->getId()].get());
-    }else{
-        ui->chatLayout->addWidget(chatsMap[contact->getId()].get());
-    }
-    chatsMap[contact->getId()]->loadChatHistory(chatHistory);
-    currentFriend = contact->getId();
+    loadChatInfo(contact.getName(),contact.getId());
 }
 
 void MainWindow::createMessageInstance(const QString &msg, unsigned long long id)
@@ -100,9 +105,34 @@ void MainWindow::createMessageInstance(const QString &msg, unsigned long long id
         chatsMap[id]->receiveMessage(msg, QDateTime::currentDateTime(), false, false);
     }
     auto friendWidget {findFriendById(id)};
-    if(friendWidget!=nullptr){
-        friendWidget->setLastMessage(false, msg);
+    if(friendWidget.has_value()){
+        friendWidget.value().second->setLastMessage(false, msg);
     }
-    notificationWidget->showNotification(msg);
+    auto currentItem {ui->contactListWidget->currentItem()};
+    auto currentWidget{dynamic_cast<ContactsWidget*>(ui->contactListWidget->itemWidget(currentItem))};
+    if(QApplication::applicationState() == Qt::ApplicationInactive ||
+      (ui->chatLayout->isEmpty() || (friendWidget.has_value() && friendWidget.value().second->getContact().getId()!=currentWidget->getContact().getId())))
+    {
+        NotificationWidget* notificationWidget{new NotificationWidget(msg, id, friendWidget.value().second->getContact().getName())};
+        connect(notificationWidget, &NotificationWidget::showMainWindow, this, &MainWindow::showAndActivate);
+        connect(notificationWidget, &NotificationWidget::reactOnNotification, this, &MainWindow::reactOnNotification);
+        notificationWidget->showNotification();
+    }
+}
+
+void MainWindow::showAndActivate()
+{
+    showNormal();
+    show();
+    activateWindow();
+}
+
+void MainWindow::reactOnNotification(unsigned long long id)
+{
+    auto friendWidget {findFriendById(id)};
+    if(friendWidget.has_value()){
+        ui->contactListWidget->setCurrentItem(friendWidget.value().first);
+        loadChatInfo(friendWidget.value().second->getContact().getName(),friendWidget.value().second->getContact().getId());
+    }
 }
 
