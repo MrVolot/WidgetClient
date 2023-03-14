@@ -1,20 +1,18 @@
 #include "ContactsWidget.h"
 #include "ui_ContactsWidget.h"
 
-ContactsWidget::ContactsWidget(const QString& name, unsigned long long id, std::pair<unsigned long long, QString> lastMessageInfo, QWidget *parent) :
+ContactsWidget::ContactsWidget(Contact contact, QWidget *parent) :
     QWidget(parent),
-    name_{name},
-    id_{id},
-    lastMessageInfo_{lastMessageInfo},
-    ui(new Ui::ContactsWidget)
+    ui(new Ui::ContactsWidget),
+    contact_{contact}
 {
     ui->setupUi(this);
-    ui->userNickname->setText(name);
+    ui->userNickname->setText(contact.getName());
     QString sender{"You: "};
-    if(id == lastMessageInfo.first){
-        sender = name + ": ";
+    if(contact.getId() == contact.getLastMessageInfo().first){
+        sender = contact.getName() + ": ";
     }
-    sender.append(lastMessageInfo.second);
+    sender.append(contact.getLastMessageInfo().second);
     ui->lastMessage->setText(sender);
 }
 
@@ -23,21 +21,17 @@ ContactsWidget::~ContactsWidget()
     delete ui;
 }
 
+Contact &ContactsWidget::getContact()
+{
+    return contact_;
+}
+
 void ContactsWidget::setLastMessage(bool isAuthor, const QString &message)
 {
     QString sender{"You: "};
     if(!isAuthor){
-        sender = name_ + ": ";
+        sender = contact_.getName() + ": ";
     }
     sender.append(message);
     ui->lastMessage->setText(sender);
-}
-QString &ContactsWidget::getName()
-{
-    return name_;
-}
-
-unsigned long long ContactsWidget::getId()
-{
-    return id_;
 }

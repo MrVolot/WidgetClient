@@ -4,9 +4,13 @@
 #include <QDesktopServices>
 #include <QPainter>
 #include <QScreen>
+#include <QMouseEvent>
 
-NotificationWidget::NotificationWidget(QWidget *parent) :
+NotificationWidget::NotificationWidget(const QString& text, unsigned long long senderId, const QString& senderName, QWidget *parent) :
     QWidget(parent),
+    text_{text},
+    senderId_{senderId},
+    senderName_{senderName},
     ui(new Ui::NotificationWidget)
 {
     ui->setupUi(this);
@@ -21,12 +25,13 @@ NotificationWidget::NotificationWidget(QWidget *parent) :
     animation.setPropertyName("popupOpacity");      //
     connect(&animation, &QAbstractAnimation::finished, this, &NotificationWidget::hide);
 
-    ui->notificationMessage->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-    ui->notificationMessage->setStyleSheet("QLabel { color : white; "
-                        "margin-top: 6px;"
-                        "margin-bottom: 6px;"
-                        "margin-left: 10px;"
-                        "margin-right: 10px; }");
+    QString styleSheet{"QLabel { color : white; "
+                       "margin-top: 6px;"
+                       "margin-bottom: 6px;"
+                       "margin-left: 10px;"
+                       "margin-right: 10px; }"};
+    ui->senderLabel->setStyleSheet(styleSheet);
+    ui->notificationMessage->setStyleSheet(styleSheet);
 
     timer = new QTimer();
     connect(timer, &QTimer::timeout, this, &NotificationWidget::hideAnimation);
@@ -54,9 +59,17 @@ void NotificationWidget::show()
     timer->start(3000);
 }
 
-void NotificationWidget::showNotification(const QString &text)
+void NotificationWidget::showNotification()
 {
-    setPopupText(text);
+    if(text_.length()>50){
+        auto textToShow{text_.left(50)};
+        textToShow.append("...");
+        ui->notificationMessage->setText(textToShow);
+    }else{
+        ui->notificationMessage->setText(text_);
+    }
+    ui->senderLabel->setText(senderName_);
+    adjustSize();
     show();
 }
 
@@ -77,6 +90,15 @@ void NotificationWidget::paintEvent(QPaintEvent *event)
         painter.setPen(Qt::NoPen);
 
         painter.drawRoundedRect(roundedRect, 10, 10);
+}
+
+void NotificationWidget::mousePressEvent(QMouseEvent *event)
+{
+    //TODO understand how to free memory, since we won't use the same notification widget ever again
+    //Call dest?
+    emit reactOnNotification(senderId_);
+    emit showMainWindow();
+    qDebug()<<"Clicked on widget";
 }
 
 void NotificationWidget::hideAnimation()
@@ -106,10 +128,4 @@ void NotificationWidget::setPopupOpacity(float opacity)
 float NotificationWidget::getPopupOpacity() const
 {
     return popupOpacity;
-}
-
-void NotificationWidget::setPopupText(const QString &text)
-{
-    ui->notificationMessage->setText(text);    // Set the text in the Label
-    adjustSize();           // With the recalculation notice sizes
 }
