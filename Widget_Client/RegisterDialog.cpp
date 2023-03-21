@@ -104,14 +104,10 @@ std::string RegisterDialog::createDeviceId()
 
 void RegisterDialog::on_LoginButton_clicked()
 {
-    Json::Value value;
-    Json::FastWriter writer_;
-    value["command"] = "login";
-    auto lol = ui->Login->text().toStdString();
-    value["login"] = ui->Login->text().toStdString();
-    value["deviceId"] = createDeviceId();
-    value["password"] = ui->Password->text().toStdString();
-    handler_->callWrite(writer_.write(value));
+    if(!validateCredentials()){
+        return;
+    }
+    sendCredentials("login");
     std::unique_lock<std::mutex> locker{mtx_};
     cv_.wait(locker);
     auto serverResponse {checkServerResponse()};
@@ -127,15 +123,10 @@ void RegisterDialog::on_LoginButton_clicked()
 
 void RegisterDialog::on_RegisterButton_clicked()
 {
-    Json::Value value;
-    Json::FastWriter writer_;
-    value["command"] = "register";
-    auto lol = ui->Login->text().toStdString();
-    value["login"] = ui->Login->text().toStdString();
-    value["deviceId"] = createDeviceId();
-    value["password"] = ui->Password->text().toStdString();
-    handler_->callWrite(writer_.write(value));
-    handler_->callAsyncRead();
+    if(!validateCredentials()){
+        return;
+    }
+    sendCredentials("register");
     std::unique_lock<std::mutex> locker{mtx_};
     cv_.wait(locker);
     auto serverResponse {checkServerResponse()};
@@ -146,5 +137,39 @@ void RegisterDialog::on_RegisterButton_clicked()
         ui->Password->clear();
         ui->Password->setPlaceholderText("User already exists!");
     }
+}
+
+bool RegisterDialog::validateCredentials()
+{
+    if(ui->Login->text().length() > 16){
+        ui->Password->clear();
+        ui->Login->clear();
+        ui->Login->setPlaceholderText("Login is too long!");
+        return false;
+    }
+    if(ui->Login->text().length() < 4){
+        ui->Password->clear();
+        ui->Login->clear();
+        ui->Login->setPlaceholderText("Login is too short!");
+        return false;
+    }
+    if(ui->Password->text().length() < 8){
+        ui->Password->clear();
+        ui->Login->clear();
+        ui->Password->setPlaceholderText("Password is too short!");
+        return false;
+    }
+    return true;
+}
+
+void RegisterDialog::sendCredentials(const std::string& command)
+{
+    Json::Value value;
+    Json::FastWriter writer_;
+    value["command"] = command;
+    value["login"] = ui->Login->text().toStdString();
+    value["deviceId"] = createDeviceId();
+    value["password"] = ui->Password->text().toStdString();
+    handler_->callWrite(writer_.write(value));
 }
 

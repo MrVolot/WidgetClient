@@ -44,6 +44,8 @@ private slots:
 
 private:
     Ui::RegisterDialog *ui;
+    bool validateCredentials();
+    void sendCredentials(const std::string& command);
 
 signals:
     void onSuccessfulLogin(const std::string& hash);
