@@ -146,7 +146,7 @@ void MainWindow::finalizeMessageReminder(const QString &msg, unsigned long long 
 {
     auto friendWidget {findFriendById(id)};
     if(friendWidget.has_value()){
-        popupNotification(msg, friendWidget.value().second->getContact().getName(), id);
+        popupNotification(msg, friendWidget.value().second->getContact().getName(), id, 30 * 1000); //30 secs
     }
 }
 

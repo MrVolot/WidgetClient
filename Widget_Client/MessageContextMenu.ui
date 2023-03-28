@@ -27,8 +27,11 @@
   </property>
   <property name="styleSheet">
    <string notr="true">QWidget#MessageContextMenu {
-    background-color: #F5F5F5;
-    border: 1px solid #DADADA;
+    background-color: rgb(68, 70, 84);
+    color: #ffffff;
+    border: 2px solid #81a1c1;
+    border-radius: 5px;
+    padding: 5px;
 }
 
 QPushButton {
@@ -69,21 +72,29 @@ QPushButton:pressed {
       <number>0</number>
      </property>
      <item>
-      <widget class="QPushButton" name="pushButton_3">
-       <property name="text">
-        <string>PushButton</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_2">
-       <property name="text">
-        <string>PushButton</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QPushButton" name="notificationReminderButton">
+       <property name="styleSheet">
+        <string notr="true">QWidget#MessageContextMenu {
+    background-color: #F5F5F5;
+    border: 1px solid #DADADA;
+}
+
+QPushButton {
+    color: #FFFFFF;
+    background-color: rgb(68, 70, 84);
+    border: none;
+    padding: 5px 10px;
+    font-size: 14px;
+}
+
+QPushButton:hover {
+    background-color: #7f7f7f;
+}
+
+QPushButton:pressed {
+    background-color: #2A85CA;
+}</string>
+       </property>
        <property name="text">
         <string>Set Reminder</string>
        </property>
