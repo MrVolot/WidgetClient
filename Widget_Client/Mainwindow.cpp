@@ -70,6 +70,7 @@ void MainWindow::loadChatInfo(const QString &name, unsigned long long id)
     while(messenger_->infoIsLoaded);
     auto chatHistory{messenger_->getChatHistory()};
     chatsMap[id].reset(new Chat{name, id});
+    connect(&*chatsMap[id], &Chat::finalizeMessageReminder, this, &MainWindow::finalizeMessageReminder);
     connect(&(*(chatsMap[id])), &Chat::sendMessage, this, &MainWindow::sendMessage);
     if(currentFriend!=0){
         chatsMap[currentFriend]->setVisible(false);
@@ -79,6 +80,14 @@ void MainWindow::loadChatInfo(const QString &name, unsigned long long id)
     }
     chatsMap[id]->loadChatHistory(chatHistory);
     currentFriend = id;
+}
+
+void MainWindow::popupNotification(const QString &msg, const QString &friendName, unsigned long long id, unsigned long long timeout)
+{
+    NotificationWidget* notificationWidget{new NotificationWidget(msg, id, friendName)};
+    connect(notificationWidget, &NotificationWidget::showMainWindow, this, &MainWindow::showAndActivate);
+    connect(notificationWidget, &NotificationWidget::reactOnNotification, this, &MainWindow::reactOnNotification);
+    QTimer::singleShot(timeout, notificationWidget, &NotificationWidget::showNotification);
 }
 
 void MainWindow::sendMessage(const QString &msg, unsigned long long id)
@@ -113,10 +122,7 @@ void MainWindow::createMessageInstance(const QString &msg, unsigned long long id
     if(QApplication::applicationState() == Qt::ApplicationInactive ||
       (ui->chatLayout->isEmpty() || (friendWidget.has_value() && friendWidget.value().second->getContact().getId()!=currentWidget->getContact().getId())))
     {
-        NotificationWidget* notificationWidget{new NotificationWidget(msg, id, friendWidget.value().second->getContact().getName())};
-        connect(notificationWidget, &NotificationWidget::showMainWindow, this, &MainWindow::showAndActivate);
-        connect(notificationWidget, &NotificationWidget::reactOnNotification, this, &MainWindow::reactOnNotification);
-        notificationWidget->showNotification();
+        popupNotification(msg, friendWidget.value().second->getContact().getName(), id);
     }
 }
 
@@ -133,6 +139,14 @@ void MainWindow::reactOnNotification(unsigned long long id)
     if(friendWidget.has_value()){
         ui->contactListWidget->setCurrentItem(friendWidget.value().first);
         loadChatInfo(friendWidget.value().second->getContact().getName(),friendWidget.value().second->getContact().getId());
+    }
+}
+
+void MainWindow::finalizeMessageReminder(const QString &msg, unsigned long long id, unsigned long long timeout)
+{
+    auto friendWidget {findFriendById(id)};
+    if(friendWidget.has_value()){
+        popupNotification(msg, friendWidget.value().second->getContact().getName(), id);
     }
 }
 

@@ -1,10 +1,13 @@
 #include "MessageWidget.h"
+#include "qevent.h"
 #include "ui_MessageWidget.h"
 
 MessageWidget::MessageWidget(const QString& text, const QString& time, bool isAuthor, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MessageWidget)
 {
+    contextMenu.reset(new MessageContextMenu{});
+    connect(&*contextMenu, &MessageContextMenu::launchReminder, this, &MessageWidget::launchReminder);
     ui->setupUi(this);
     ui->message->setWordWrap(true);
     ui->messageRight->setWordWrap(true);
@@ -50,4 +53,18 @@ QString MessageWidget::getText()
 MessageWidget::~MessageWidget()
 {
     delete ui;
+}
+
+void MessageWidget::mousePressEvent(QMouseEvent *event)
+{
+    if (event->button() == Qt::RightButton){
+        QPointF globalPos = event->globalPosition();
+        // Set position of context menu and show it
+        contextMenu->popup(globalPos.toPoint());
+    }
+}
+
+void MessageWidget::launchReminder()
+{
+    emit proceedMessageReminder(getText());
 }

@@ -38,5 +38,8 @@ private:
     std::chrono::system_clock::time_point getChronoTime(const std::string& timeStr);
 signals:
     void sendMessage(const QString& msg, unsigned long long id);
+    void finalizeMessageReminder(const QString &msg, unsigned long long id, unsigned long long timeout = 0);
+public slots:
+    void proceedMessageReminder(const QString &msg);
 };
 

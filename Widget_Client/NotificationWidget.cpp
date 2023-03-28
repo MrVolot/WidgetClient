@@ -98,7 +98,6 @@ void NotificationWidget::mousePressEvent(QMouseEvent *event)
     //Call dest?
     emit reactOnNotification(senderId_);
     emit showMainWindow();
-    qDebug()<<"Clicked on widget";
 }
 
 void NotificationWidget::hideAnimation()

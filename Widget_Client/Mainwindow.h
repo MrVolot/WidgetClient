@@ -32,13 +32,14 @@ private:
     void pushFriendListToGui(std::vector<Contact> friendList);
     std::optional<std::pair<QListWidgetItem*, ContactsWidget*>> findFriendById(unsigned long long id);
     void loadChatInfo(const QString &name, unsigned long long id);
-
+    void popupNotification(const QString &msg, const QString &friendName, unsigned long long id, unsigned long long timeout=0);
 private slots:
     void sendMessage(const QString& msg, unsigned long long id);
     void on_contactListWidget_itemClicked(QListWidgetItem *item);
     void createMessageInstance(const QString& msg, unsigned long long id);
     void showAndActivate();
     void reactOnNotification(unsigned long long id);
+    void finalizeMessageReminder(const QString &msg, unsigned long long id, unsigned long long timeout=0);
 signals:
     void createMessageInstanceSignal(const QString& msg, unsigned long long id);
 };
