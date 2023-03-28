@@ -36,6 +36,7 @@ private:
     bool hasSpaces(const QString& str);
     QString createWrap(const QString& str);
     std::chrono::system_clock::time_point getChronoTime(const std::string& timeStr);
+    void createAndPushMessageWidget(const QString &msg, bool isAuthor);
 signals:
     void sendMessage(const QString& msg, unsigned long long id);
     void finalizeMessageReminder(const QString &msg, unsigned long long id, unsigned long long timeout = 0);
