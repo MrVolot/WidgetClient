@@ -51,6 +51,9 @@ set(PROJECT_SOURCES
         NotificationWidget.h
         NotificationWidget.cpp
         NotificationWidget.ui
+        MessageContextMenu.h
+        MessageContextMenu.cpp
+        MessageContextMenu.ui
 )
 
 set(BOOST_LIBRARYDIR D:/Boost/boost-build/lib)

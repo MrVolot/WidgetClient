@@ -2,6 +2,7 @@
 
 #include <QLabel>
 #include <QWidget>
+#include "MessageContextMenu.h"
 
 namespace Ui {
 class MessageWidget;
@@ -17,5 +18,12 @@ public:
     ~MessageWidget();
 private:
     Ui::MessageWidget *ui;
+    std::unique_ptr<MessageContextMenu> contextMenu;
+protected:
+    void mousePressEvent(QMouseEvent* event) override;
+signals:
+    void proceedMessageReminder(const QString &msg);
+public slots:
+    void launchReminder();
 };
 

@@ -76,7 +76,7 @@ void Chat::receiveMessage(const QString &msg, const QDateTime& sentTime, bool cr
     auto correctTime{sentTime.time().toString()};
     correctTime.chop(3);
     MessageWidget* tmpWidget{new MessageWidget{msg, correctTime, isAuthor}};
-
+    connect(tmpWidget, &MessageWidget::proceedMessageReminder, this, &Chat::proceedMessageReminder);
     if(createDateWidget || (!lastMessageDateTime.isNull() && lastMessageDateTime.date() != sentTime.date())){
         MessagesDateWidget* dateWidget{new MessagesDateWidget{sentTime}};
         auto item2 {new QListWidgetItem{}};
@@ -114,7 +114,7 @@ void Chat::processMessage(const QString &msg, bool isAuthor)
     if(workingString.size()>1024){
         splitIntoMessages(workingString, isAuthor);
     }else{
-        vectorOfMessages.push_back(new MessageWidget{workingString, getCurrentTime(), isAuthor});
+        createAndPushMessageWidget(workingString, isAuthor);
     }
 }
 
@@ -153,18 +153,18 @@ void Chat::splitIntoMessages(const QString &msg, bool isAuthor)
     QString newString {};
     if (toTheLeft < toTheRight) {
         newString = msg.mid(0, limit - toTheLeft +1);
-        vectorOfMessages.push_back(new MessageWidget{newString, getCurrentTime(), isAuthor});
+        createAndPushMessageWidget(newString, isAuthor);
     }
     else {
         newString = msg.mid(0, toTheRight + limit + 1);
-        vectorOfMessages.push_back(new MessageWidget{newString, getCurrentTime(), isAuthor});
+        createAndPushMessageWidget(newString, isAuthor);
     }
     newString = msg.mid(newString.size());
     if(newString.size() > limit){
         splitIntoMessages(newString, isAuthor);
         return;
     }
-    vectorOfMessages.push_back(new MessageWidget{newString, getCurrentTime(), isAuthor});
+    createAndPushMessageWidget(newString, isAuthor);
 }
 
 bool Chat::hasSpaces(const QString &str)
@@ -204,5 +204,17 @@ std::chrono::system_clock::time_point Chat::getChronoTime(const std::string &tim
     std::stringstream ss(timeStr);
     ss >> std::get_time(&tm, "%Y %m %d %H:%M:%S");
     return std::chrono::system_clock::from_time_t(std::mktime(&tm));
+}
+
+void Chat::createAndPushMessageWidget(const QString &msg, bool isAuthor)
+{
+    MessageWidget* tmpWidget{new MessageWidget{msg, getCurrentTime(), isAuthor}};
+    connect(tmpWidget, &MessageWidget::proceedMessageReminder, this, &Chat::proceedMessageReminder);
+    vectorOfMessages.push_back(tmpWidget);
+}
+
+void Chat::proceedMessageReminder(const QString &msg)
+{
+    emit finalizeMessageReminder(msg, id);
 }
 
