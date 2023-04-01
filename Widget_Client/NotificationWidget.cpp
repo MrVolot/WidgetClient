@@ -120,7 +120,6 @@ void NotificationWidget::hide()
 void NotificationWidget::setPopupOpacity(float opacity)
 {
     popupOpacity = opacity;
-
     setWindowOpacity(opacity);
 }
 

@@ -54,6 +54,9 @@ set(PROJECT_SOURCES
         MessageContextMenu.h
         MessageContextMenu.cpp
         MessageContextMenu.ui
+        ContactsListWidget.h
+        ContactsListWidget.cpp
+        ContactsListWidget.ui
 )
 
 set(BOOST_LIBRARYDIR D:/Boost/boost-build/lib)
