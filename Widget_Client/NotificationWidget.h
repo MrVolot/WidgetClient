@@ -40,6 +40,6 @@ protected:
     void mousePressEvent(QMouseEvent *event) override;
 signals:
     void showMainWindow();
-    void reactOnNotification(unsigned long long id);
+    bool reactOnNotification(unsigned long long id);
 };
 

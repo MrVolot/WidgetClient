@@ -16,6 +16,7 @@ public:
     ~ContactsWidget();
     Contact& getContact();
     void setLastMessage(bool isAuthor, const QString& message);
+    void setContact(const Contact& contact);
 private:
     Ui::ContactsWidget *ui;
     Contact contact_;

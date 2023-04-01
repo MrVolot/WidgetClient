@@ -22,6 +22,7 @@ class Messenger: public std::enable_shared_from_this<Messenger<Caller>>
     Config config_;
     std::vector<Contact> friendList_;
     std::vector<std::map<std::string, QString>> chatHistoryVector_;
+    std::vector<Contact> possibleContactsVector_;
 
     std::function<void(Caller*, const QString&, unsigned long long)> senderCallback_;
 
@@ -32,8 +33,10 @@ class Messenger: public std::enable_shared_from_this<Messenger<Caller>>
     void receiveMessage(const std::string& data);
     void fillFriendList(const std::string& jsonData);
     void fillChatHistory(const std::string& jsonData);
+    void parsePossibleContacts(const std::string& jsonData);
 public:
     bool infoIsLoaded;
+    bool possibleContactsLoaded;
 
     Messenger(boost::asio::io_service& service, const std::string& hash, Caller* caller);
     ~Messenger();
@@ -44,6 +47,9 @@ public:
     std::vector<Contact>& getFriendList();
     void requestChatHistory(long long id);
     std::vector<std::map<std::string, QString>>& getChatHistory();
+    void tryFindByLogin(const QString& login);
+    std::vector<Contact>& getPossibleContacts();
+    void cleanPossibleContacts();
 };
 
 template <typename Caller>
@@ -52,7 +58,8 @@ Messenger<Caller>::Messenger(boost::asio::io_service& service, const std::string
     hash_{hash},
     caller_{caller},
     config_{"config.txt"},
-    infoIsLoaded{true}
+    infoIsLoaded{true},
+    possibleContactsLoaded{false}
 {
     auto ip{ config_.getConfigValue("ipServer") };
     auto portStr{ config_.getConfigValue("portServer") };
@@ -87,7 +94,9 @@ void Messenger<Caller>::readCallback(std::shared_ptr<IConnectionHandler<Messenge
 template <typename Caller>
 void Messenger<Caller>::writeCallback(std::shared_ptr<IConnectionHandler<Messenger> > handler, const boost::system::error_code &err, size_t bytes_transferred)
 {
-    qDebug()<< "ERROR: " << err.what().c_str() << " Bytes: " <<bytes_transferred;
+    if(err){
+        qDebug()<< "ERROR: " << err.what().c_str() << " Bytes: " <<bytes_transferred;
+    }
 }
 template <typename Caller>
 void Messenger<Caller>::init(const boost::system::error_code &erCode)
@@ -111,6 +120,9 @@ void Messenger<Caller>::parseServerCommands(const std::string &data)
     case GETCHAT:
         fillChatHistory(data);
         break;
+    case TRY_GET_CONTACT_BY_LOGIN:
+        parsePossibleContacts(data);
+        break;
     }
 
 }
@@ -120,7 +132,6 @@ void Messenger<Caller>::receiveMessage(const std::string &data)
     Json::Value value;
     Json::Reader reader;
     reader.parse(data, value);
-    qDebug()<<value["sender"].asCString() << value["message"].asCString();
     senderCallback_(caller_, value["message"].asCString(), std::stoull(value["sender"].asString()));
 }
 
@@ -204,4 +215,40 @@ void Messenger<Caller>::fillChatHistory(const std::string& jsonData){
 template <typename Caller>
 std::vector<std::map<std::string, QString>>& Messenger<Caller>::getChatHistory(){
     return chatHistoryVector_;
+}
+
+template <typename Caller>
+std::vector<Contact>& Messenger<Caller>::getPossibleContacts(){
+    return possibleContactsVector_;
+}
+
+template <typename Caller>
+void Messenger<Caller>::tryFindByLogin(const QString& login){
+    Json::Value value;
+    Json::FastWriter writer;
+    value["command"] = TRY_GET_CONTACT_BY_LOGIN;
+    value["LOGIN"] = login.toStdString();
+    handler_->callWrite(writer.write(value));
+}
+
+template <typename Caller>
+void Messenger<Caller>::parsePossibleContacts(const std::string& jsonData){
+    Json::Reader reader;
+    Json::Value value;
+    reader.parse(jsonData, value);
+    auto dataArray{value["data"]};
+    for(auto& dataValue : dataArray){
+        QString login{""};
+        unsigned long long id{};
+        login = dataValue["LOGIN"].asCString();
+        id = dataValue["ID"].asUInt64();
+        Contact tmpContact {login, id, {1, ""}};
+        possibleContactsVector_.push_back(tmpContact);
+    }
+    possibleContactsLoaded = true;
+}
+
+template <typename Caller>
+void Messenger<Caller>::cleanPossibleContacts(){
+    possibleContactsVector_.clear();
 }

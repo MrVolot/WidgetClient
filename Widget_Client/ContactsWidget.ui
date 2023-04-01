@@ -49,7 +49,7 @@
         <string notr="true"/>
        </property>
        <property name="text">
-        <string>TextLabel</string>
+        <string/>
        </property>
        <property name="alignment">
         <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
@@ -75,7 +75,7 @@
      <item>
       <widget class="QLabel" name="lastMessage">
        <property name="text">
-        <string>TextLabel</string>
+        <string/>
        </property>
        <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>

@@ -32,7 +32,6 @@ void Chat::loadChatHistory(std::vector<std::map<std::string, QString> > &chatHis
         time = time.substr(0, time.find("+")-4);
         auto correctTime {QDateTime::fromString(QString::fromStdString(time), "yyyy-MM-dd hh:mm")};
         bool result{messageEntity["receiver"].toStdString() != std::to_string(id)};
-        auto currentDateTime{QDateTime::currentDateTime()};
         bool createDateWidget {false};
         if(previousDateTime.date() != correctTime.date()){
             previousDateTime = correctTime;
@@ -120,7 +119,6 @@ void Chat::processMessage(const QString &msg, bool isAuthor)
 
 int Chat::getClosestPunctuationMarkPosition(const QString &msg, bool isLeftToRight)
 {
-    QString punctuationMarks{"."};//!;?:
     if(isLeftToRight){
         auto iter{std::find_if(msg.rbegin(), msg.rend(), [](const QChar character){return character == '.' ||
                                                                                                      character == '!' ||
@@ -180,8 +178,10 @@ QString Chat::getCurrentTime()
 {
     auto now = std::chrono::system_clock::now();
     auto in_time_t = std::chrono::system_clock::to_time_t(now);
+    std::tm time_info;
+    localtime_s(&time_info, &in_time_t);
     std::stringstream ss;
-    ss << std::put_time(std::localtime(&in_time_t), "%R");
+    ss << std::put_time(&time_info, "%R");
     return ss.str().c_str();
 }
 
