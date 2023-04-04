@@ -84,7 +84,7 @@ void MainWindow::sendMessage(const QString &msg, unsigned long long id)
     auto selectedItem {contactsListWidget->getContactsWidget()->currentItem()};
     auto contact{dynamic_cast<ContactsWidget*>(contactsListWidget->getContactsWidget()->itemWidget(selectedItem))};
     contact->setLastMessage(true, msg);
-    messenger_->sendMessage(std::to_string(id), msg.toStdString());
+    messenger_->sendMessage(id, msg.toStdString());
 }
 
 void MainWindow::createMessageInstance(const QString &msg, unsigned long long id)

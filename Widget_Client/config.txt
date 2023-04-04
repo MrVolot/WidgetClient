@@ -2,5 +2,6 @@
 "ipLoginServer": "127.0.0.1",
 "portLoginServer": "10696",
 "ipServer": "127.0.0.1",
-"portServer": "10690"
+"portServer": "10690",
+"privateKeyLocation": "D:\\repos\\Final_Messenger\\WidgetClient\\Widget_Client\\privateKey.pem"
 }
