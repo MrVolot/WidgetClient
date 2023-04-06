@@ -15,7 +15,6 @@ public:
     std::string encryptMessage(const std::string& message, std::vector<unsigned char> sharedKey);
     std::string decryptMessage(const std::string& encrypted_message, std::vector<unsigned char> sharedKey);
     EVP_PKEY* transformStringKey(const std::string& public_key_str);
-    //std::optional<std::vector<unsigned char>> tryGetSharedKeyById(unsigned long long id);
     void print_openssl_error();
 };
 

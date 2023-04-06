@@ -87,11 +87,13 @@ Messenger<Caller>::Messenger(boost::asio::io_service& service, const std::string
     secureTransmitter_.reset(new SecureTransmitter{});
     secureTransmitter_->setPrivateKey(privateKeyLocation.value());
 }
+
 template <typename Caller>
 Messenger<Caller>::~Messenger()
 {
     handler_->getSocket().close();
 }
+
 template <typename Caller>
 void Messenger<Caller>::readCallback(std::shared_ptr<IConnectionHandler<Messenger> > handler, const boost::system::error_code &err, size_t bytes_transferred)
 {
@@ -103,6 +105,7 @@ void Messenger<Caller>::readCallback(std::shared_ptr<IConnectionHandler<Messenge
     handler->resetStrBuf();
     handler->callAsyncRead();
 }
+
 template <typename Caller>
 void Messenger<Caller>::writeCallback(std::shared_ptr<IConnectionHandler<Messenger> > handler, const boost::system::error_code &err, size_t bytes_transferred)
 {
@@ -110,12 +113,14 @@ void Messenger<Caller>::writeCallback(std::shared_ptr<IConnectionHandler<Messeng
         qDebug()<< "ERROR: " << err.what().c_str() << " Bytes: " <<bytes_transferred;
     }
 }
+
 template <typename Caller>
 void Messenger<Caller>::init(const boost::system::error_code &erCode)
 {
     handler_->callWrite(hash_);
     handler_->callAsyncRead();
 }
+
 template <typename Caller>
 void Messenger<Caller>::parseServerCommands(const std::string &data)
 {
@@ -136,8 +141,8 @@ void Messenger<Caller>::parseServerCommands(const std::string &data)
         parsePossibleContacts(data);
         break;
     }
-
 }
+
 template <typename Caller>
 void Messenger<Caller>::receiveMessage(const std::string &data)
 {
