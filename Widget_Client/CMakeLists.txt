@@ -57,6 +57,8 @@ set(PROJECT_SOURCES
         ContactsListWidget.h
         ContactsListWidget.cpp
         ContactsListWidget.ui
+        SecureTransmitter.h
+        SecureTransmitter.cpp
 )
 
 set(BOOST_LIBRARYDIR D:/Boost/boost-build/lib)

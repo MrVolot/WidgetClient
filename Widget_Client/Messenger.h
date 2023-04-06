@@ -8,15 +8,7 @@
 #include <ContactsWidget.h>
 #include <iostream>
 #include "Config.h"
-
-
-// Include necessary OpenSSL headers
-#pragma warning(disable : 4996)
-#include <openssl/rsa.h>
-#include <openssl/pem.h>
-#include <openssl/evp.h>
-#include <openssl/rand.h>
-#include "openssl/err.h"
+#include "SecureTransmitter.h"
 
 template <typename Caller>
 class Messenger: public std::enable_shared_from_this<Messenger<Caller>>
@@ -30,17 +22,13 @@ class Messenger: public std::enable_shared_from_this<Messenger<Caller>>
     Caller* caller_;
     Config config_;
     unsigned long long id_;
-
     //remove this and store messages after they are loaded
     //or create some other logic
-    unsigned long long currentFriendIdForChatHistory = 0;
+    unsigned long long currentFriendIdForChatHistory_ = 0;
     std::vector<Contact> friendList_;
     std::vector<std::map<std::string, QString>> chatHistoryVector_;
     std::vector<Contact> possibleContactsVector_;
-
-    // Necessary member variables for E2EE
-    EVP_PKEY* privateKey;
-
+    std::unique_ptr<SecureTransmitter> secureTransmitter_;
     std::function<void(Caller*, const QString&, unsigned long long)> senderCallback_;
 
     void readCallback(std::shared_ptr<IConnectionHandler<Messenger>> handler, const boost::system::error_code &err, size_t bytes_transferred);
@@ -51,31 +39,7 @@ class Messenger: public std::enable_shared_from_this<Messenger<Caller>>
     void fillFriendList(const std::string& jsonData);
     void fillChatHistory(const std::string& jsonData);
     void parsePossibleContacts(const std::string& jsonData);
-
-    Contact getContactById(long long id){
-        for (auto& contact : friendList_) {
-            if (id == contact.getId()) {
-                return contact;
-            }
-        }
-    }
-
-    void print_openssl_error() {
-        unsigned long err = ERR_get_error();
-        if (err != 0) {
-            char err_buf[256];
-            ERR_error_string_n(err, err_buf, sizeof(err_buf));
-            qDebug() << "OpenSSL error: " << err_buf ;
-        } else {
-            std::cerr << "No OpenSSL error available" << std::endl;
-        }
-    }
-    //E2EE methods
-    std::vector<unsigned char> generateSharedKey(const std::string& userPublicKey);
-    void setPrivateKey(const std::string& private_key_file);
-    std::string encryptMessage(const std::string& message, std::vector<unsigned char> sharedKey);
-    std::string decryptMessage(const std::string& encrypted_message, std::vector<unsigned char> sharedKey);
-    EVP_PKEY* transformStringKey(const std::string& public_key_str);
+    std::optional<Contact> getContactById(long long id);
     std::optional<std::vector<unsigned char>> tryGetSharedKeyById(unsigned long long id);
 public:
     bool infoIsLoaded;
@@ -119,7 +83,9 @@ Messenger<Caller>::Messenger(boost::asio::io_service& service, const std::string
     handler_.reset(new ConnectionHandler<Messenger>{ service_, *this});
     handler_->setAsyncReadCallback(&Messenger::readCallback);
     handler_->setWriteCallback(&Messenger::writeCallback);
-    setPrivateKey(privateKeyLocation.value());
+
+    secureTransmitter_.reset(new SecureTransmitter{});
+    secureTransmitter_->setPrivateKey(privateKeyLocation.value());
 }
 template <typename Caller>
 Messenger<Caller>::~Messenger()
@@ -181,7 +147,7 @@ void Messenger<Caller>::receiveMessage(const std::string &data)
     auto receiverId{std::stoull(value["sender"].asString())};
     auto sharedKey {tryGetSharedKeyById(receiverId)};
     if(sharedKey.has_value()){
-        senderCallback_(caller_, decryptMessage(value["message"].asString(), sharedKey.value()).c_str(), receiverId);
+        senderCallback_(caller_, secureTransmitter_->decryptMessage(value["message"].asString(), sharedKey.value()).c_str(), receiverId);
     }
 }
 
@@ -203,8 +169,8 @@ void Messenger<Caller>::fillFriendList(const std::string& jsonData)
         }
         std::vector<unsigned char> sharedKey{};
         if(publicKey.length()>4){
-            sharedKey = generateSharedKey(publicKey);
-            lastMessage = decryptMessage(dataValue["lastMessage"]["message"].asString(), sharedKey).c_str();
+            sharedKey = secureTransmitter_->generateSharedKey(publicKey);
+            lastMessage = secureTransmitter_->decryptMessage(dataValue["lastMessage"]["message"].asString(), sharedKey).c_str();
         }
         Contact tmpContact {dataValue["name"].asCString(), dataValue["id"].asUInt64(), {senderId, lastMessage}, sharedKey};
         friendList_.push_back(tmpContact);
@@ -226,7 +192,7 @@ void Messenger<Caller>::sendMessage(unsigned long long receiverId, const std::st
     value["receiver"] = std::to_string(receiverId);//maybe leave without converting to string?
     auto sharedKey {tryGetSharedKeyById(receiverId)};
     if(sharedKey.has_value()){
-        auto encryptedMsg{encryptMessage(message, sharedKey.value())};
+        auto encryptedMsg{secureTransmitter_->encryptMessage(message, sharedKey.value())};
         value["message"] = encryptedMsg;
         value["command"] = SENDMESSAGE;
         handler_->callWrite(writer.write(value));
@@ -259,7 +225,7 @@ void Messenger<Caller>::requestChatHistory(long long id){
     Json::FastWriter writer;
     value["receiver"] = std::to_string(id);
     value["command"] = GETCHAT;
-    currentFriendIdForChatHistory = id;
+    currentFriendIdForChatHistory_ = id;
     handler_->callWrite(writer.write(value));
 }
 
@@ -272,9 +238,9 @@ void Messenger<Caller>::fillChatHistory(const std::string& jsonData){
     for(auto& valueArray : value["data"]){
         std::map<std::string, QString> tmpMap;
         for(auto& key : valueArray.getMemberNames()){
-            auto sharedKey {tryGetSharedKeyById(currentFriendIdForChatHistory)};
+            auto sharedKey {tryGetSharedKeyById(currentFriendIdForChatHistory_)};
             if(key == "message" && sharedKey.has_value()){
-                tmpMap[key] = decryptMessage(valueArray[key].asString(), sharedKey.value()).c_str();
+                tmpMap[key] = secureTransmitter_->decryptMessage(valueArray[key].asString(), sharedKey.value()).c_str();
             }else{
                 tmpMap[key] = valueArray[key].asCString();
             }
@@ -286,7 +252,7 @@ void Messenger<Caller>::fillChatHistory(const std::string& jsonData){
 
 template <typename Caller>
 std::vector<std::map<std::string, QString>>& Messenger<Caller>::getChatHistory(){
-    currentFriendIdForChatHistory = 0;
+    currentFriendIdForChatHistory_ = 0;
     return chatHistoryVector_;
 }
 
@@ -327,191 +293,28 @@ void Messenger<Caller>::cleanPossibleContacts(){
 }
 
 template <typename Caller>
-std::vector<unsigned char> Messenger<Caller>::generateSharedKey(const std::string& userPublicKey) {
-    EVP_PKEY* user_pub_key = transformStringKey(userPublicKey);
-
-    // Derive a shared secret using the client's private key and the server's public key
-    EVP_PKEY_CTX* ctx = EVP_PKEY_CTX_new(privateKey, nullptr);
-    if (!ctx) {
-        throw std::runtime_error("Failed to create EVP_PKEY_CTX");
-    }
-
-    if (EVP_PKEY_derive_init(ctx) != 1) {
-        print_openssl_error();
-        EVP_PKEY_CTX_free(ctx);
-        throw std::runtime_error("Failed to initialize key derivation");
-    }
-
-    if (EVP_PKEY_derive_set_peer(ctx, user_pub_key) != 1) {
-        EVP_PKEY_CTX_free(ctx);
-        print_openssl_error();
-        throw std::runtime_error("Failed to set peer key");
-    }
-
-    size_t secret_len = 32;
-    std::vector<unsigned char> shared_secretTMP(secret_len);
-    if (EVP_PKEY_derive(ctx, shared_secretTMP.data(), &secret_len) != 1) {
-        EVP_PKEY_CTX_free(ctx);
-        throw std::runtime_error("Failed to derive shared secret");
-    }
-
-    EVP_PKEY_CTX_free(ctx);
-
-    // Clean up
-    EVP_PKEY_free(user_pub_key);
-
-    std::string str(shared_secretTMP.begin(), shared_secretTMP.end());
-    return shared_secretTMP;
-}
-
-template <typename Caller>
-std::string Messenger<Caller>::encryptMessage(const std::string& message, std::vector<unsigned char> sharedKey) {
-    // 1. Generate a random IV for encryption
-    std::vector<unsigned char> iv;
-    iv.resize(16);
-    RAND_bytes(iv.data(), iv.size());
-
-    // 2. Create an AES-256 cipher context using the shared secret and IV
-    EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
-    EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, sharedKey.data(), iv.data());
-
-    // 3. Encrypt the plaintext message using the cipher context
-    int decryptedLen = message.length() + EVP_MAX_BLOCK_LENGTH;
-    unsigned char* encrypted = new unsigned char[decryptedLen];
-    int finalLen;
-    EVP_EncryptUpdate(ctx, encrypted, &decryptedLen, reinterpret_cast<const unsigned char*>(message.data()), message.length());
-    EVP_EncryptFinal_ex(ctx, encrypted + decryptedLen, &finalLen);
-    decryptedLen += finalLen;
-    EVP_CIPHER_CTX_free(ctx);
-
-    // 4. Combine the IV and encrypted message
-    std::vector<unsigned char> combined(iv.begin(), iv.end());
-    combined.insert(combined.end(), encrypted, encrypted + decryptedLen);
-
-    // 5. Encode the combined message using Base64
-    BIO* bio = BIO_new(BIO_s_mem());
-    BIO* b64 = BIO_new(BIO_f_base64());
-    BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
-    BIO_push(b64, bio);
-    BIO_write(b64, combined.data(), combined.size());
-    BIO_flush(b64);
-
-    BUF_MEM* buffer;
-    BIO_get_mem_ptr(b64, &buffer);
-
-    std::string encoded(buffer->data, buffer->length);
-
-    // Clean up
-    delete[] encrypted;
-    BIO_free_all(b64);
-
-    return encoded;
-}
-
-template <typename Caller>
-EVP_PKEY* Messenger<Caller>::transformStringKey(const std::string& publicKeyStr) {
-    // Create a new BIO memory buffer and load the public key string into it
-    BIO* publicKeyBio = BIO_new_mem_buf(publicKeyStr.data(), static_cast<int>(publicKeyStr.size()));
-    if (!publicKeyBio) {
-        throw std::runtime_error("Failed to create BIO memory buffer");
-    }
-
-    // Read the public key from the BIO memory buffer
-    EVP_PKEY* publicKey = PEM_read_bio_PUBKEY(publicKeyBio, nullptr, nullptr, nullptr);
-    BIO_free(publicKeyBio);
-
-    if (!publicKey) {
-        throw std::runtime_error("Failed to read server's public key");
-    }
-
-    return publicKey;
-}
-
-template <typename Caller>
-std::string Messenger<Caller>::decryptMessage(const std::string& encryptedMessage, std::vector<unsigned char> sharedKey) {
-    // Decode the Base64-encoded encrypted message
-    BIO* bio = BIO_new_mem_buf(encryptedMessage.data(), encryptedMessage.size());
-    BIO* b64 = BIO_new(BIO_f_base64());
-    BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
-    BIO_push(b64, bio);
-
-    std::vector<unsigned char> decodedMessage(encryptedMessage.size());
-    int decodedLen = BIO_read(b64, decodedMessage.data(), decodedMessage.size());
-    BIO_free_all(b64);
-
-    if (decodedMessage.size() < 16 || decodedLen <= 16) {
-        return encryptedMessage;
-    }
-    // Separate the IV and encrypted message
-    std::vector<unsigned char> iv(decodedMessage.begin(), decodedMessage.begin() + 16);
-    std::vector<unsigned char> encryptedMessageBinary(decodedMessage.begin() + 16, decodedMessage.begin() + decodedLen);
-
-
-    // Initialize the context for decryption
-    EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
-    if (!ctx) {
-        qDebug()<<"Failed to create cipher context for decryption";
-        return encryptedMessage;
-    }
-
-    // Set the decryption key and IV
-    if (!EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, sharedKey.data(), iv.data())) {
-        EVP_CIPHER_CTX_free(ctx);
-        qDebug()<<"Failed to set decryption key and IV";
-        return encryptedMessage;
-    }
-
-    // Decrypt the message
-    std::vector<unsigned char> decryptedMessage(encryptedMessageBinary.size());
-    int decryptedLen = 0;
-
-    if (!EVP_DecryptUpdate(ctx, decryptedMessage.data(), &decryptedLen, encryptedMessageBinary.data(), encryptedMessageBinary.size())) {
-        EVP_CIPHER_CTX_free(ctx);
-        qDebug()<<"Failed to decrypt message";
-        return encryptedMessage;
-    }
-
-    int final_len = 0;
-    decryptedMessage.resize(decryptedLen + EVP_MAX_BLOCK_LENGTH);
-    if (!EVP_DecryptFinal_ex(ctx, decryptedMessage.data() + decryptedLen, &final_len)) {
-        print_openssl_error();
-        EVP_CIPHER_CTX_free(ctx);
-        qDebug()<<"Failed to finalize decryption";
-        return encryptedMessage;
-    }
-
-    decryptedMessage.resize(decryptedLen + final_len);
-    EVP_CIPHER_CTX_free(ctx);
-    return std::string(decryptedMessage.begin(), decryptedMessage.end());
-}
-
-template <typename Caller>
-void Messenger<Caller>::setPrivateKey(const std::string& privateKeyFilePath)
-{
-    // Read the client's private key from the file
-    BIO* privateKeyBio = BIO_new_file(privateKeyFilePath.c_str(), "r");
-    if (!privateKeyBio) {
-        throw std::runtime_error("Failed to open private key file");
-    }
-    privateKey = PEM_read_bio_PrivateKey(privateKeyBio, nullptr, nullptr, nullptr);
-    BIO_free(privateKeyBio);
-
-    if (!privateKey) {
-        throw std::runtime_error("Failed to read private key");
-    }
-}
-
-template <typename Caller>
 std::optional<std::vector<unsigned char>> Messenger<Caller>::tryGetSharedKeyById(unsigned long long id)
 {
     try{
         auto currentContact{getContactById(id)};
-        auto sharedKey {currentContact.getSharedKey()};
-        if(sharedKey.size() > 4){
-            return sharedKey;
+        if(currentContact.has_value()){
+            auto sharedKey {currentContact.value().getSharedKey()};
+            if(sharedKey.size() > 4){
+                return sharedKey;
+            }
         }
         return std::nullopt;
     }catch(...){
         return std::nullopt;
     }
+}
+
+template <typename Caller>
+std::optional<Contact> Messenger<Caller>::getContactById(long long id){
+    for (auto& contact : friendList_) {
+        if (id == contact.getId()) {
+            return contact;
+        }
+    }
+    return std::nullopt;
 }
