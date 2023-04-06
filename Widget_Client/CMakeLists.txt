@@ -57,6 +57,8 @@ set(PROJECT_SOURCES
         ContactsListWidget.h
         ContactsListWidget.cpp
         ContactsListWidget.ui
+        SecureTransmitter.h
+        SecureTransmitter.cpp
 )
 
 set(BOOST_LIBRARYDIR D:/Boost/boost-build/lib)
@@ -101,6 +103,10 @@ else()
     endif()
 endif()
 
+find_package(OpenSSL REQUIRED)
+include_directories(${OPENSSL_INCLUDE_DIR})
+
+target_link_libraries(Widget_Client PRIVATE ${OPENSSL_LIBRARIES})
 target_link_libraries(Widget_Client PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 
 set_target_properties(Widget_Client PROPERTIES

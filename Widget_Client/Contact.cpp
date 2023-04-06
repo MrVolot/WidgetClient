@@ -15,7 +15,16 @@ std::pair<unsigned long long, const QString&> Contact::getLastMessageInfo()
     return lastMessageInfo_;
 }
 
-Contact::Contact(const QString& name, unsigned long long id, std::pair<unsigned long long, QString> lastMessageInfo): name_{name}, id_{id}, lastMessageInfo_{lastMessageInfo}
+std::vector<unsigned char> &Contact::getSharedKey()
+{
+    return sharedKey_;
+}
+
+Contact::Contact(const QString& name, unsigned long long id, std::pair<unsigned long long, QString> lastMessageInfo, std::vector<unsigned char> sharedKey):
+    name_{name},
+    id_{id},
+    lastMessageInfo_{lastMessageInfo},
+    sharedKey_{sharedKey}
 {
 
 }
