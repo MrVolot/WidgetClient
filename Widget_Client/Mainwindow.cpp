@@ -4,7 +4,6 @@
 #include <QString>
 #include <IoServiceWorker.h>
 #include <QDateTime>
-#include <QElapsedTimer>
 #include "NotificationWidget.h"
 
 MainWindow::MainWindow(boost::asio::io_service& service, const std::string& hash, QWidget *parent)
@@ -49,8 +48,6 @@ void MainWindow::sendMessageToChat(const QString &msg, unsigned long long id)
 
 void MainWindow::loadChatInfo(Contact& contact)
 {
-    QElapsedTimer timer;
-    timer.start();
     auto id{contact.getId()};
     auto name{contact.getName()};
     auto currentFriendId{contactsListWidget->getCurrentFriendId()};
@@ -72,8 +69,6 @@ void MainWindow::loadChatInfo(Contact& contact)
     }
     chatsMap[id]->loadChatHistory(chatHistory);
     contactsListWidget->setCurrentFriendId(id);
-    qint64 elapsedTime = timer.elapsed();
-    qDebug() << "The function took" << elapsedTime << "milliseconds to execute.";
 }
 
 void MainWindow::popupNotification(const QString &msg, const QString &friendName, unsigned long long id, unsigned long long timeout)
