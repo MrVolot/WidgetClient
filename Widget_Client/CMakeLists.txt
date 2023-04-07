@@ -108,7 +108,7 @@ include_directories(${OPENSSL_INCLUDE_DIR})
 
 
 # Add this line to include the cert_utils library
-set(certificateUtils D:/repos/Final_Messenger/certificateUtils)
+set(certificateUtils D:/repos/Final_Messenger/MessengerMain/ThirdParty/certificateUtils)
 add_subdirectory(${certificateUtils} ${CMAKE_BINARY_DIR}/certificateUtils)
 
 # Link the cert_utils library to your server/client executable
