@@ -1,7 +1,7 @@
 #pragma once
 
 #include <boost/asio.hpp>
-#include "../ConnectionHandler/headers/ConnectionHandler.h"
+#include "../ConnectionHandler/headers/HttpsConnectionHandler.h"
 #include <Contact.h>
 #include "../Json/json/json.h"
 #include <Commands.h>
@@ -9,6 +9,7 @@
 #include <iostream>
 #include "Config.h"
 #include "SecureTransmitter.h"
+#include "certificateUtils.h"
 
 template <typename Caller>
 class Messenger: public std::enable_shared_from_this<Messenger<Caller>>
@@ -30,6 +31,7 @@ class Messenger: public std::enable_shared_from_this<Messenger<Caller>>
     std::vector<Contact> possibleContactsVector_;
     std::unique_ptr<SecureTransmitter> secureTransmitter_;
     std::function<void(Caller*, const QString&, unsigned long long)> senderCallback_;
+    boost::asio::ssl::context ssl_context_;
 
     void readCallback(std::shared_ptr<IConnectionHandler<Messenger>> handler, const boost::system::error_code &err, size_t bytes_transferred);
     void writeCallback(std::shared_ptr<IConnectionHandler<Messenger>> handler, const boost::system::error_code &err, size_t bytes_transferred);
@@ -57,6 +59,7 @@ public:
     void tryFindByLogin(const QString& login);
     std::vector<Contact>& getPossibleContacts();
     void cleanPossibleContacts();
+    void processAfterHandshake();
 };
 
 template <typename Caller>
@@ -66,7 +69,8 @@ Messenger<Caller>::Messenger(boost::asio::io_service& service, const std::string
     caller_{caller},
     config_{"config.txt"},
     infoIsLoaded{true},
-    possibleContactsLoaded{false}
+    possibleContactsLoaded{false},
+    ssl_context_{boost::asio::ssl::context::sslv23}
 {
     OpenSSL_add_all_algorithms();
     auto ip{ config_.getConfigValue("ipServer") };
@@ -80,7 +84,27 @@ Messenger<Caller>::Messenger(boost::asio::io_service& service, const std::string
     port_ = std::stoi(portStr.value());
     ip_ = ip.value();
 
-    handler_.reset(new ConnectionHandler<Messenger>{ service_, *this});
+    std::shared_ptr<EVP_PKEY> private_key = certificateUtils::generate_private_key(2048);
+    std::shared_ptr<X509> certificate = certificateUtils::generate_self_signed_certificate("ServerClient", private_key.get(), 365);
+
+    // Load the CA certificate into memory
+    std::shared_ptr<X509> ca_cert = certificateUtils::load_ca_certificate();
+
+    // Add the CA certificate to the SSL context
+    X509_STORE* cert_store = SSL_CTX_get_cert_store(ssl_context_.native_handle());
+    X509_STORE_add_cert(cert_store, ca_cert.get());
+
+    // Use the generated private key and certificate for the SSL context
+    ssl_context_.use_private_key(boost::asio::const_buffer(certificateUtils::private_key_to_pem(private_key.get()).data(), certificateUtils::private_key_to_pem(private_key.get()).size()), boost::asio::ssl::context::pem);
+    ssl_context_.use_certificate(boost::asio::const_buffer(certificateUtils::certificate_to_pem(certificate.get()).data(), certificateUtils::certificate_to_pem(certificate.get()).size()), boost::asio::ssl::context::pem);
+    ssl_context_.set_options(boost::asio::ssl::context::default_workarounds | boost::asio::ssl::context::no_sslv2 | boost::asio::ssl::context::single_dh_use);
+    ssl_context_.set_verify_mode(boost::asio::ssl::verify_peer);
+    ssl_context_.set_verify_callback(
+        [](bool preverified, boost::asio::ssl::verify_context& ctx) {
+            return certificateUtils::custom_verify_callback(preverified, ctx, "Server");
+        });
+
+    handler_ = std::make_shared<HttpsConnectionHandler<Messenger, ConnectionHandlerType::CLIENT>>(service_, *this, ssl_context_);
     handler_->setAsyncReadCallback(&Messenger::readCallback);
     handler_->setWriteCallback(&Messenger::writeCallback);
 
@@ -117,8 +141,11 @@ void Messenger<Caller>::writeCallback(std::shared_ptr<IConnectionHandler<Messeng
 template <typename Caller>
 void Messenger<Caller>::init(const boost::system::error_code &erCode)
 {
-    handler_->callWrite(hash_);
-    handler_->callAsyncRead();
+    if(erCode){
+        qDebug()<<erCode.message().c_str();
+    } else {
+        handler_->callAsyncHandshake();
+    }
 }
 
 template <typename Caller>
@@ -322,4 +349,9 @@ std::optional<Contact> Messenger<Caller>::getContactById(long long id){
         }
     }
     return std::nullopt;
+}
+
+template <typename Caller>
+void Messenger<Caller>::processAfterHandshake() {
+    handler_->callWrite(hash_);
 }

@@ -1,10 +1,12 @@
 #include "RegisterDialog.h"
 #include "ui_RegisterDialog.h"
+#include "certificateUtils.h"
 
 RegisterDialog::RegisterDialog(boost::asio::io_service& service, QWidget *parent) :
     QDialog(parent),
     service_{service},
     config_{"config.txt"},
+    ssl_context_{boost::asio::ssl::context::sslv23},
     ui(new Ui::RegisterDialog)
 {
     ui->setupUi(this);
@@ -19,7 +21,28 @@ RegisterDialog::RegisterDialog(boost::asio::io_service& service, QWidget *parent
     port_ = std::stoi(portStr.value());
     ip_ = ip.value();
 
-    handler_.reset(new ConnectionHandler<RegisterDialog>{ service_, *this});
+
+    std::shared_ptr<EVP_PKEY> private_key = certificateUtils::generate_private_key(2048);
+    std::shared_ptr<X509> certificate = certificateUtils::generate_self_signed_certificate("LoginServerClient", private_key.get(), 365);
+
+    // Load the CA certificate into memory
+    std::shared_ptr<X509> ca_cert = certificateUtils::load_ca_certificate();
+
+    // Add the CA certificate to the SSL context
+    X509_STORE* cert_store = SSL_CTX_get_cert_store(ssl_context_.native_handle());
+    X509_STORE_add_cert(cert_store, ca_cert.get());
+
+    // Use the generated private key and certificate for the SSL context
+    ssl_context_.use_private_key(boost::asio::const_buffer(certificateUtils::private_key_to_pem(private_key.get()).data(), certificateUtils::private_key_to_pem(private_key.get()).size()), boost::asio::ssl::context::pem);
+    ssl_context_.use_certificate(boost::asio::const_buffer(certificateUtils::certificate_to_pem(certificate.get()).data(), certificateUtils::certificate_to_pem(certificate.get()).size()), boost::asio::ssl::context::pem);
+    ssl_context_.set_options(boost::asio::ssl::context::default_workarounds | boost::asio::ssl::context::no_sslv2 | boost::asio::ssl::context::single_dh_use);
+    ssl_context_.set_verify_mode(boost::asio::ssl::verify_peer);
+    ssl_context_.set_verify_callback(
+        [](bool preverified, boost::asio::ssl::verify_context& ctx) {
+            return certificateUtils::custom_verify_callback(preverified, ctx, "LoginServer");
+        });
+
+    handler_ = std::make_shared<HttpsConnectionHandler<RegisterDialog, ConnectionHandlerType::CLIENT>>(service_, *this, ssl_context_);
     handler_->setAsyncReadCallback(&RegisterDialog::readCallback);
     handler_->setWriteCallback(&RegisterDialog::writeCallback);
 }
@@ -54,8 +77,9 @@ void RegisterDialog::init(const boost::system::error_code& erCode)
 {
     if(erCode){
         qDebug()<<erCode.message().c_str();
+    } else {
+        handler_->callAsyncHandshake();
     }
-    handler_->callAsyncRead();
 }
 
 void RegisterDialog::initializeConnection()
@@ -66,6 +90,11 @@ void RegisterDialog::initializeConnection()
 std::string RegisterDialog::getHash()
 {
     return hash_;
+}
+
+void RegisterDialog::processAfterHandshake()
+{
+
 }
 
 unsigned int RegisterDialog::checkServerResponse()

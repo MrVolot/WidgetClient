@@ -7,4 +7,5 @@ Widget_Client/privateKey.pem
 Widget_Client/privateKey.pem
 Widget_Client/publicKey.pem
 Widget_Client/config.txt
+Widget_Client/ca.crt
 CMakeLists.txt.user

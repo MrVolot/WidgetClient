@@ -2,10 +2,11 @@
 
 #include <QDialog>
 #include <boost/asio.hpp>
-#include "../ConnectionHandler/headers/ConnectionHandler.h"
 #include <mutex>
 #include <condition_variable>
 #include "Config.h"
+#include <boost/asio/ssl.hpp>
+#include "../ConnectionHandler/headers/HttpsConnectionHandler.h"
 
 namespace Ui {
 class RegisterDialog;
@@ -24,6 +25,7 @@ class RegisterDialog : public QDialog, public std::enable_shared_from_this<Regis
     std::string serverResponseString_;
     std::string hash_;
     Config config_;
+    boost::asio::ssl::context ssl_context_;
 
     void writeCallback(std::shared_ptr<IConnectionHandler<RegisterDialog>> handler, const boost::system::error_code &err, size_t bytes_transferred);
     void readCallback(std::shared_ptr<IConnectionHandler<RegisterDialog>> handler, const boost::system::error_code &err, size_t bytes_transferred);
@@ -37,6 +39,7 @@ public:
     unsigned int checkLoginData();
     void initializeConnection();
     std::string getHash();
+    void processAfterHandshake();
 private slots:
     void on_LoginButton_clicked();
 
