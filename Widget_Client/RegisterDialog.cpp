@@ -79,7 +79,6 @@ void RegisterDialog::init(const boost::system::error_code& erCode)
         qDebug()<<erCode.message().c_str();
     } else {
         handler_->callAsyncHandshake();
-        //handler_->callAsyncRead();
     }
 }
 
@@ -171,24 +170,24 @@ void RegisterDialog::on_RegisterButton_clicked()
 
 bool RegisterDialog::validateCredentials()
 {
-//    if(ui->Login->text().length() > 16){
-//        ui->Password->clear();
-//        ui->Login->clear();
-//        ui->Login->setPlaceholderText("Login is too long!");
-//        return false;
-//    }
-//    if(ui->Login->text().length() < 4){
-//        ui->Password->clear();
-//        ui->Login->clear();
-//        ui->Login->setPlaceholderText("Login is too short!");
-//        return false;
-//    }
-//    if(ui->Password->text().length() < 8){
-//        ui->Password->clear();
-//        ui->Login->clear();
-//        ui->Password->setPlaceholderText("Password is too short!");
-//        return false;
-//    }
+    if(ui->Login->text().length() > 16){
+        ui->Password->clear();
+        ui->Login->clear();
+        ui->Login->setPlaceholderText("Login is too long!");
+        return false;
+    }
+    if(ui->Login->text().length() < 4){
+        ui->Password->clear();
+        ui->Login->clear();
+        ui->Login->setPlaceholderText("Login is too short!");
+        return false;
+    }
+    if(ui->Password->text().length() < 8){
+        ui->Password->clear();
+        ui->Login->clear();
+        ui->Password->setPlaceholderText("Password is too short!");
+        return false;
+    }
     return true;
 }
 
