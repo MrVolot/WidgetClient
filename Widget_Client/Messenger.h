@@ -1,8 +1,7 @@
 #pragma once
 
 #include <boost/asio.hpp>
-//#include "../ConnectionHandler/headers/ConnectionHandler.h"
-#include "../ConnectionHandler/headers/ConnectionHandlerSsl.h"
+#include "../ConnectionHandler/headers/HttpsConnectionHandler.h"
 #include <Contact.h>
 #include "../Json/json/json.h"
 #include <Commands.h>
@@ -10,6 +9,7 @@
 #include <iostream>
 #include "Config.h"
 #include "SecureTransmitter.h"
+#include "certificateUtils.h"
 
 template <typename Caller>
 class Messenger: public std::enable_shared_from_this<Messenger<Caller>>
@@ -43,30 +43,6 @@ class Messenger: public std::enable_shared_from_this<Messenger<Caller>>
     void parsePossibleContacts(const std::string& jsonData);
     std::optional<Contact> getContactById(long long id);
     std::optional<std::vector<unsigned char>> tryGetSharedKeyById(unsigned long long id);
-    bool custom_verify_callback(bool preverified, boost::asio::ssl::verify_context& ctx) {
-        // You can implement your custom verification logic here.
-        // For now, we'll just return the value of 'preverified'.
-        // Get the X509_STORE_CTX object
-        X509_STORE_CTX* store_ctx = ctx.native_handle();
-
-        // Get the current certificate and its depth in the chain
-        int depth = X509_STORE_CTX_get_error_depth(store_ctx);
-        X509* cert = X509_STORE_CTX_get_current_cert(store_ctx);
-
-        // Convert the X509 certificate to a human-readable format
-        BIO* bio = BIO_new(BIO_s_mem());
-        X509_print(bio, cert);
-        BUF_MEM* mem;
-        BIO_get_mem_ptr(bio, &mem);
-        std::string cert_info(mem->data, mem->length);
-        BIO_free(bio);
-
-        qDebug() << "Certificate depth: " << depth;
-        qDebug() << "Certificate information: \n"<< cert_info.c_str() ;
-        qDebug() << "Preverified: " << preverified;
-        return true;
-    }
-
 public:
     bool infoIsLoaded;
     bool possibleContactsLoaded;
@@ -108,14 +84,27 @@ Messenger<Caller>::Messenger(boost::asio::io_service& service, const std::string
     port_ = std::stoi(portStr.value());
     ip_ = ip.value();
 
-    //handler_.reset(new ConnectionHandler<Messenger>{ service_, *this});
-    ssl_context_.load_verify_file("C:\\Users\\Kiril\\Desktop\\testing\\ca.crt"); // Replace with the correct path
-    ssl_context_.use_certificate_chain_file("C:\\Users\\Kiril\\Desktop\\testing\\client.crt");
-    ssl_context_.use_private_key_file("C:\\Users\\Kiril\\Desktop\\testing\\client.key", boost::asio::ssl::context::pem);
+    std::shared_ptr<EVP_PKEY> private_key = certificateUtils::generate_private_key(2048);
+    std::shared_ptr<X509> certificate = certificateUtils::generate_self_signed_certificate("ServerClient", private_key.get(), 365);
+
+    // Load the CA certificate into memory
+    std::shared_ptr<X509> ca_cert = certificateUtils::load_ca_certificate();
+
+    // Add the CA certificate to the SSL context
+    X509_STORE* cert_store = SSL_CTX_get_cert_store(ssl_context_.native_handle());
+    X509_STORE_add_cert(cert_store, ca_cert.get());
+
+    // Use the generated private key and certificate for the SSL context
+    ssl_context_.use_private_key(boost::asio::const_buffer(certificateUtils::private_key_to_pem(private_key.get()).data(), certificateUtils::private_key_to_pem(private_key.get()).size()), boost::asio::ssl::context::pem);
+    ssl_context_.use_certificate(boost::asio::const_buffer(certificateUtils::certificate_to_pem(certificate.get()).data(), certificateUtils::certificate_to_pem(certificate.get()).size()), boost::asio::ssl::context::pem);
     ssl_context_.set_options(boost::asio::ssl::context::default_workarounds | boost::asio::ssl::context::no_sslv2 | boost::asio::ssl::context::single_dh_use);
     ssl_context_.set_verify_mode(boost::asio::ssl::verify_peer);
-    ssl_context_.set_verify_callback(boost::bind(&Messenger::custom_verify_callback, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
-    handler_ = std::make_shared<HttpsConnectionHandler<Messenger>>(service_, *this, ssl_context_);
+    ssl_context_.set_verify_callback(
+        [](bool preverified, boost::asio::ssl::verify_context& ctx) {
+            return certificateUtils::custom_verify_callback(preverified, ctx, "Server");
+        });
+
+    handler_ = std::make_shared<HttpsConnectionHandler<Messenger, ConnectionHandlerType::CLIENT>>(service_, *this, ssl_context_);
     handler_->setAsyncReadCallback(&Messenger::readCallback);
     handler_->setWriteCallback(&Messenger::writeCallback);
 
@@ -156,9 +145,7 @@ void Messenger<Caller>::init(const boost::system::error_code &erCode)
         qDebug()<<erCode.message().c_str();
     } else {
         handler_->callAsyncHandshake();
-        //handler_->callWrite(hash_);
     }
-    //handler_->callAsyncRead();
 }
 
 template <typename Caller>

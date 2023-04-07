@@ -1,5 +1,6 @@
 #include "RegisterDialog.h"
 #include "ui_RegisterDialog.h"
+#include "certificateUtils.h"
 
 RegisterDialog::RegisterDialog(boost::asio::io_service& service, QWidget *parent) :
     QDialog(parent),
@@ -20,17 +21,28 @@ RegisterDialog::RegisterDialog(boost::asio::io_service& service, QWidget *parent
     port_ = std::stoi(portStr.value());
     ip_ = ip.value();
 
-    ssl_context_.load_verify_file("C:\\Users\\Kiril\\Desktop\\testing\\ca.crt"); // Replace with the correct path
-    auto [cert_buffer, key_buffer] = generate_self_signed_certificate_and_key();
-    ssl_context_.use_certificate(cert_buffer, boost::asio::ssl::context::file_format::pem);
-    ssl_context_.use_private_key(key_buffer, boost::asio::ssl::context::file_format::pem);
-//    ssl_context_.use_certificate_chain_file("C:\\Users\\Kiril\\Desktop\\testing\\client.crt");
-//    ssl_context_.use_private_key_file("C:\\Users\\Kiril\\Desktop\\testing\\client.key", boost::asio::ssl::context::pem);
+
+    std::shared_ptr<EVP_PKEY> private_key = certificateUtils::generate_private_key(2048);
+    std::shared_ptr<X509> certificate = certificateUtils::generate_self_signed_certificate("LoginServerClient", private_key.get(), 365);
+
+    // Load the CA certificate into memory
+    std::shared_ptr<X509> ca_cert = certificateUtils::load_ca_certificate();
+
+    // Add the CA certificate to the SSL context
+    X509_STORE* cert_store = SSL_CTX_get_cert_store(ssl_context_.native_handle());
+    X509_STORE_add_cert(cert_store, ca_cert.get());
+
+    // Use the generated private key and certificate for the SSL context
+    ssl_context_.use_private_key(boost::asio::const_buffer(certificateUtils::private_key_to_pem(private_key.get()).data(), certificateUtils::private_key_to_pem(private_key.get()).size()), boost::asio::ssl::context::pem);
+    ssl_context_.use_certificate(boost::asio::const_buffer(certificateUtils::certificate_to_pem(certificate.get()).data(), certificateUtils::certificate_to_pem(certificate.get()).size()), boost::asio::ssl::context::pem);
     ssl_context_.set_options(boost::asio::ssl::context::default_workarounds | boost::asio::ssl::context::no_sslv2 | boost::asio::ssl::context::single_dh_use);
     ssl_context_.set_verify_mode(boost::asio::ssl::verify_peer);
-    ssl_context_.set_verify_callback(boost::bind(&RegisterDialog::custom_verify_callback, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
-    handler_ = std::make_shared<HttpsConnectionHandler<RegisterDialog>>(service_, *this, ssl_context_);
+    ssl_context_.set_verify_callback(
+        [](bool preverified, boost::asio::ssl::verify_context& ctx) {
+            return certificateUtils::custom_verify_callback(preverified, ctx, "LoginServer");
+        });
 
+    handler_ = std::make_shared<HttpsConnectionHandler<RegisterDialog, ConnectionHandlerType::CLIENT>>(service_, *this, ssl_context_);
     handler_->setAsyncReadCallback(&RegisterDialog::readCallback);
     handler_->setWriteCallback(&RegisterDialog::writeCallback);
 }
@@ -66,7 +78,6 @@ void RegisterDialog::init(const boost::system::error_code& erCode)
     if(erCode){
         qDebug()<<erCode.message().c_str();
     } else {
-        qDebug() << "Connected.";
         handler_->callAsyncHandshake();
         //handler_->callAsyncRead();
     }
@@ -190,29 +201,5 @@ void RegisterDialog::sendCredentials(const std::string& command)
     value["deviceId"] = createDeviceId();
     value["password"] = ui->Password->text().toStdString();
     handler_->callWrite(writer_.write(value));
-}
-
-bool RegisterDialog::custom_verify_callback(bool preverified, boost::asio::ssl::verify_context& ctx) {
-     // You can implement your custom verification logic here.
-     // For now, we'll just return the value of 'preverified'.
-    // Get the X509_STORE_CTX object
-    X509_STORE_CTX* store_ctx = ctx.native_handle();
-
-    // Get the current certificate and its depth in the chain
-    int depth = X509_STORE_CTX_get_error_depth(store_ctx);
-    X509* cert = X509_STORE_CTX_get_current_cert(store_ctx);
-
-    // Convert the X509 certificate to a human-readable format
-    BIO* bio = BIO_new(BIO_s_mem());
-    X509_print(bio, cert);
-    BUF_MEM* mem;
-    BIO_get_mem_ptr(bio, &mem);
-    std::string cert_info(mem->data, mem->length);
-    BIO_free(bio);
-
-    qDebug() << "Certificate depth: " << depth;
-    qDebug() << "Certificate information: \n"<< cert_info.c_str() ;
-    qDebug() << "Preverified: " << preverified;
-     return true;
 }
 

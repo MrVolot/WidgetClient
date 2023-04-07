@@ -106,6 +106,14 @@ endif()
 find_package(OpenSSL REQUIRED)
 include_directories(${OPENSSL_INCLUDE_DIR})
 
+
+# Add this line to include the cert_utils library
+set(certificateUtils D:/repos/Final_Messenger/certificateUtils)
+add_subdirectory(${certificateUtils} ${CMAKE_BINARY_DIR}/certificateUtils)
+
+# Link the cert_utils library to your server/client executable
+target_link_libraries(Widget_Client PRIVATE certificateUtils)
+
 target_link_libraries(Widget_Client PRIVATE ${OPENSSL_LIBRARIES})
 target_link_libraries(Widget_Client PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 
