@@ -8,6 +8,8 @@
 #include <ContactsWidget.h>
 #include <iostream>
 #include "Config.h"
+#include "MessageInfo.h"
+#include "MessengerSignalHandler.h"
 #include "SecureTransmitter.h"
 #include "certificateUtils.h"
 
@@ -30,7 +32,7 @@ class Messenger: public std::enable_shared_from_this<Messenger<Caller>>
     std::vector<std::map<std::string, QString>> chatHistoryVector_;
     std::vector<Contact> possibleContactsVector_;
     std::unique_ptr<SecureTransmitter> secureTransmitter_;
-    std::function<void(Caller*, const QString&, unsigned long long)> senderCallback_;
+    std::function<void(Caller*, const MessageInfo &)> senderCallback_;
     boost::asio::ssl::context ssl_context_;
 
     void readCallback(std::shared_ptr<IConnectionHandler<Messenger>> handler, const boost::system::error_code &err, size_t bytes_transferred);
@@ -46,13 +48,14 @@ class Messenger: public std::enable_shared_from_this<Messenger<Caller>>
 public:
     bool infoIsLoaded;
     bool possibleContactsLoaded;
+    MessengerSignalHandler signalHandler;
 
     Messenger(boost::asio::io_service& service, const std::string& hash, Caller* caller);
     ~Messenger();
     void initializeConnection();
-    void sendMessage(unsigned long long receiverId, const std::string& message);
+    void sendMessage(const MessageInfo & messageInfo);
     void logout();
-    void setReceiveMessageCallback(std::function<void(Caller*, const QString&, unsigned long long)> callback);
+    void setReceiveMessageCallback(std::function<void(Caller*, const MessageInfo &)> callback);
     std::vector<Contact>& getFriendList();
     void requestChatHistory(long long id);
     std::vector<std::map<std::string, QString>>& getChatHistory();
@@ -60,6 +63,7 @@ public:
     std::vector<Contact>& getPossibleContacts();
     void cleanPossibleContacts();
     void processAfterHandshake();
+    void removeMessageFromDb(const MessageInfo & msgInfo);
 };
 
 template <typename Caller>
@@ -167,6 +171,13 @@ void Messenger<Caller>::parseServerCommands(const std::string &data)
     case TRY_GET_CONTACT_BY_LOGIN:
         parsePossibleContacts(data);
         break;
+    case DELETE_MESSAGE:
+        QString chatId{value["receiver"].asCString()};
+        if(chatId.toULongLong() == id_){
+            chatId = value["sender"].asCString();
+        }
+        emit signalHandler.deleteMessageRequest(chatId, value["messageGuid"].asCString());
+        break;
     }
 }
 
@@ -176,10 +187,23 @@ void Messenger<Caller>::receiveMessage(const std::string &data)
     Json::Value value;
     Json::Reader reader;
     reader.parse(data, value);
-    auto receiverId{std::stoull(value["sender"].asString())};
-    auto sharedKey {tryGetSharedKeyById(receiverId)};
+    auto senderId{std::stoull(value["sender"].asString())};
+    auto sharedKey {tryGetSharedKeyById(senderId)};
     if(sharedKey.has_value()){
-        senderCallback_(caller_, secureTransmitter_->decryptMessage(value["message"].asString(), sharedKey.value()).c_str(), receiverId);
+        //what about isAuthor?
+        //TODO: REMOVE ISAUTHOR
+        bool isAuthor{false};
+        if(senderId == id_){
+            isAuthor = true;
+        }
+        MessageInfo msgInfo{value["messageGuid"].asCString(),
+                            senderId,
+                            std::stoull(value["receiver"].asString()),
+                            secureTransmitter_->decryptMessage(value["message"].asString(),
+                                                               sharedKey.value()).c_str(),
+                            value["time"].asCString(),
+                            isAuthor};
+        senderCallback_(caller_, msgInfo);
     }
 }
 
@@ -217,16 +241,17 @@ void Messenger<Caller>::initializeConnection()
 }
 
 template <typename Caller>
-void Messenger<Caller>::sendMessage(unsigned long long receiverId, const std::string &message)
+void Messenger<Caller>::sendMessage(const MessageInfo & messageInfo)
 {
     Json::Value value;
     Json::FastWriter writer;
-    value["receiver"] = std::to_string(receiverId);//maybe leave without converting to string?
-    auto sharedKey {tryGetSharedKeyById(receiverId)};
+    value["receiver"] = std::to_string(messageInfo.friendId);//maybe leave without converting to string?
+    auto sharedKey {tryGetSharedKeyById(messageInfo.friendId)};
     if(sharedKey.has_value()){
-        auto encryptedMsg{secureTransmitter_->encryptMessage(message, sharedKey.value())};
+        auto encryptedMsg{secureTransmitter_->encryptMessage(messageInfo.text.toStdString(), sharedKey.value())};
         value["message"] = encryptedMsg;
         value["command"] = SENDMESSAGE;
+        value["messageGuid"] = messageInfo.messageGuid.toStdString();
         handler_->callWrite(writer.write(value));
     }
 }
@@ -241,7 +266,7 @@ void Messenger<Caller>::logout()
 }
 
 template <typename Caller>
-void Messenger<Caller>::setReceiveMessageCallback(std::function<void (Caller*, const QString &, unsigned long long)> callback)
+void Messenger<Caller>::setReceiveMessageCallback(std::function<void (Caller*, const MessageInfo &)> callback)
 {
     senderCallback_= callback;
 }
@@ -354,4 +379,16 @@ std::optional<Contact> Messenger<Caller>::getContactById(long long id){
 template <typename Caller>
 void Messenger<Caller>::processAfterHandshake() {
     handler_->callWrite(hash_);
+}
+
+template <typename Caller>
+void Messenger<Caller>::removeMessageFromDb(const MessageInfo & msgInfo)
+{
+    Json::Value value;
+    Json::FastWriter writer;
+    value["command"] = DELETE_MESSAGE;
+    value["messageGuid"] = msgInfo.messageGuid.toStdString();
+    value["receiverId"] = msgInfo.receiverId;
+    value["senderId"] = msgInfo.senderId;
+    handler_->callWrite(writer.write(value));
 }

@@ -35,19 +35,20 @@
 }
 
 QPushButton {
-    color: #FFFFFF;
-    background-color: #2F9AE0;
-    border: none;
-    padding: 5px 10px;
-    font-size: 14px;
+color: #FFFFFF;
+background-color: rgb(68, 70, 84);
+border: none;
+padding: 5px 10px;
+font-size: 14px;
+text-align:left;
 }
 
 QPushButton:hover {
-    background-color: #3D9FFA;
+background-color: #7f7f7f;
 }
 
 QPushButton:pressed {
-    background-color: #2A85CA;
+background-color: #2A85CA;
 }</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -74,29 +75,26 @@ QPushButton:pressed {
      <item>
       <widget class="QPushButton" name="notificationReminderButton">
        <property name="styleSheet">
-        <string notr="true">QWidget#MessageContextMenu {
-    background-color: #F5F5F5;
-    border: 1px solid #DADADA;
-}
-
-QPushButton {
-    color: #FFFFFF;
-    background-color: rgb(68, 70, 84);
-    border: none;
-    padding: 5px 10px;
-    font-size: 14px;
-}
-
-QPushButton:hover {
-    background-color: #7f7f7f;
-}
-
-QPushButton:pressed {
-    background-color: #2A85CA;
-}</string>
+        <string notr="true"/>
        </property>
        <property name="text">
         <string>Set Reminder</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="deleteButton">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
+       <property name="text">
+        <string>Delete</string>
+       </property>
+       <property name="checkable">
+        <bool>false</bool>
        </property>
       </widget>
      </item>

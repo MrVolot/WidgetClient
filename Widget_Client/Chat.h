@@ -13,8 +13,8 @@ class Chat : public QWidget
     Q_OBJECT
 
 public:
-    explicit Chat(const QString& nameArg, unsigned long long idArg, QWidget *parent = nullptr);
-    void receiveMessage(const QString& msg, const QDateTime& sentTime, bool createDateWidget, bool isAuthor = true);
+    explicit Chat(unsigned long long friendId, const QString& friendName, Mediator *mediator, QWidget *parent = nullptr);
+    void receiveMessage(const MessageInfo& msgInfo, const QDateTime& sentTime, bool createDateWidget);
     ~Chat();
     void loadChatHistory(std::vector<std::map<std::string, QString>>& chatHistory);
     QString getCurrentTime();
@@ -25,10 +25,12 @@ private slots:
 
 private:
     Ui::Chat *ui;
-    QString name;
-    unsigned long long id;
+    unsigned long long friendId_;
+    QString friendName_;
     std::vector<MessageWidget*> vectorOfMessages;
     QDateTime lastMessageDateTime;
+    Mediator *mediator_;
+    std::unordered_map<std::string, int> messagesMap;
 
     void processMessage(const QString &msg, bool isAuthor);
     int getClosestPunctuationMarkPosition(const QString &msg, bool isLeftToRight);
@@ -38,9 +40,8 @@ private:
     std::chrono::system_clock::time_point getChronoTime(const std::string& timeStr);
     void createAndPushMessageWidget(const QString &msg, bool isAuthor);
 signals:
-    void sendMessage(const QString& msg, unsigned long long id);
-    void finalizeMessageReminder(const QString &msg, unsigned long long id, unsigned long long timeout = 0);
+    void sendMessage(const MessageInfo& messageInfo);
 public slots:
-    void proceedMessageReminder(const QString &msg);
+    void onContextMenuMessageRemovalSignal(const MessageInfo & msgInfo);
 };
 

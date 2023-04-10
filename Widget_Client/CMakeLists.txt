@@ -59,6 +59,11 @@ set(PROJECT_SOURCES
         ContactsListWidget.ui
         SecureTransmitter.h
         SecureTransmitter.cpp
+        Mediator.h
+        Mediator.cpp
+        MessageInfo.h
+        MessengerSignalHandler.h
+        MessengerSignalHandler.cpp
 )
 
 set(BOOST_LIBRARYDIR D:/Boost/boost-build/lib)

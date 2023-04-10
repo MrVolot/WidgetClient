@@ -25,11 +25,16 @@ MainWindow::MainWindow(boost::asio::io_service& service, const std::string& hash
 
     //Setting up messenger_ and retrieving contacts
     messenger_.reset(new Messenger<MainWindow>{service, hash, this});
+    connect(&messenger_->signalHandler, &MessengerSignalHandler::deleteMessageRequest, this, &MainWindow::onDeleteMessageRequest);
     messenger_->initializeConnection();
     messenger_->setReceiveMessageCallback(&MainWindow::sendMessageToChat);
     while(messenger_->infoIsLoaded);
     contactsListWidget->addContacts(messenger_->getFriendList());
     connect(this, &MainWindow::createMessageInstanceSignal, this, &MainWindow::createMessageInstance);
+
+    mediator_ = new Mediator(this);
+    connect(mediator_, &Mediator::contextMenuSignal, this, &MainWindow::onContextMenuSlot);
+    connect(mediator_, &Mediator::contextMenuMessageRemovalFromDbSignal, this, &MainWindow::onContextMenuMessageRemovalFromDbSlot);
 }
 
 MainWindow::~MainWindow()
@@ -39,11 +44,11 @@ MainWindow::~MainWindow()
 }
 
 //Method which retrieves messages from server (those messages are sent to Messenger.h and then callback invokes this method)
-void MainWindow::sendMessageToChat(const QString &msg, unsigned long long id)
+void MainWindow::sendMessageToChat(const MessageInfo &messageInfo)
 {
     auto friendList{messenger_->getFriendList()};
-    auto contact{std::find_if(friendList.begin(), friendList.end(), [&](Contact& tmpContact){qDebug() << tmpContact.getId()<< " "<< id;return tmpContact.getId() == id;})};
-    emit createMessageInstanceSignal(msg, id);
+    //auto contact{std::find_if(friendList.begin(), friendList.end(), [&](Contact& tmpContact){qDebug() << tmpContact.getId()<< " "<< id;return tmpContact.getId() == id;})};
+    emit createMessageInstanceSignal(messageInfo);
 }
 
 void MainWindow::loadChatInfo(Contact& contact)
@@ -58,8 +63,7 @@ void MainWindow::loadChatInfo(Contact& contact)
     messenger_->infoIsLoaded = true;
     while(messenger_->infoIsLoaded);
     auto chatHistory{messenger_->getChatHistory()};
-    chatsMap[id].reset(new Chat{name, id});
-    connect(&*chatsMap[id], &Chat::finalizeMessageReminder, this, &MainWindow::finalizeMessageReminder);
+    chatsMap[id].reset(new Chat{id, name, mediator_});
     connect(&(*(chatsMap[id])), &Chat::sendMessage, this, &MainWindow::sendMessage);
     if(currentFriendId!=0){
         chatsMap[currentFriendId]->setVisible(false);
@@ -79,29 +83,33 @@ void MainWindow::popupNotification(const QString &msg, const QString &friendName
     QTimer::singleShot(timeout, notificationWidget, &NotificationWidget::showNotification);
 }
 
-void MainWindow::sendMessage(const QString &msg, unsigned long long id)
+void MainWindow::sendMessage(const MessageInfo &msgInfo)
 {
     auto selectedItem {contactsListWidget->getContactsWidget()->currentItem()};
     auto contact{dynamic_cast<ContactsWidget*>(contactsListWidget->getContactsWidget()->itemWidget(selectedItem))};
-    contact->setLastMessage(true, msg);
-    messenger_->sendMessage(id, msg.toStdString());
+    contact->setLastMessage(true, msgInfo.text);
+    messenger_->sendMessage(msgInfo);
 }
 
-void MainWindow::createMessageInstance(const QString &msg, unsigned long long id)
+void MainWindow::createMessageInstance(const MessageInfo &msgInfo)
 {
+    auto id{msgInfo.friendId};
+    auto tmpMsgInfo{msgInfo};
+    auto currentDateTime{QDateTime::currentDateTime()};
+    tmpMsgInfo.sentTime = currentDateTime.time().toString("hh:mm");
     if(chatsMap.find(id) != chatsMap.end()){
-        chatsMap[id]->receiveMessage(msg, QDateTime::currentDateTime(), false, false);
+        chatsMap[id]->receiveMessage(tmpMsgInfo, currentDateTime, false);
     }
     auto friendWidget {contactsListWidget->findFriendById(id)};
     if(friendWidget.has_value()){
-        friendWidget.value().second->setLastMessage(false, msg);
+        friendWidget.value().second->setLastMessage(false, tmpMsgInfo.text);
     }
     auto currentItem {contactsListWidget->getContactsWidget()->currentItem()};
     auto currentWidget{dynamic_cast<ContactsWidget*>(contactsListWidget->getContactsWidget()->itemWidget(currentItem))};
     if(QApplication::applicationState() == Qt::ApplicationInactive ||
             (ui->chatLayout->isEmpty() || (friendWidget.has_value() && friendWidget.value().second->getContact().getId()!=currentWidget->getContact().getId())))
     {
-        popupNotification(msg, friendWidget.value().second->getContact().getName(), id);
+        popupNotification(tmpMsgInfo.text, friendWidget.value().second->getContact().getName(), id);
     }
 }
 
@@ -111,15 +119,6 @@ void MainWindow::showAndActivate()
     show();
     activateWindow();
 }
-
-void MainWindow::finalizeMessageReminder(const QString &msg, unsigned long long id, unsigned long long timeout)
-{
-    auto friendWidget {contactsListWidget->findFriendById(id)};
-    if(friendWidget.has_value()){
-        popupNotification(msg, friendWidget.value().second->getContact().getName(), id, 30 * 1000); //30 secs
-    }
-}
-
 
 void MainWindow::on_searchLine_returnPressed()
 {
@@ -146,4 +145,22 @@ void MainWindow::on_searchLine_textChanged(const QString& text)
 void MainWindow::cleanSearchLine()
 {
     ui->searchLine->clear();
+}
+
+void MainWindow::onContextMenuSlot(const MessageInfo &msgInfo)
+{
+    auto friendWidget {contactsListWidget->findFriendById(msgInfo.friendId)};
+    if(friendWidget.has_value()){
+        popupNotification(msgInfo.text, friendWidget.value().second->getContact().getName(), msgInfo.friendId, 5 * 1000); //30 secs
+    }
+}
+
+void MainWindow::onContextMenuMessageRemovalFromDbSlot(const MessageInfo& msgInfo)
+{
+    messenger_->removeMessageFromDb(msgInfo);
+}
+
+void MainWindow::onDeleteMessageRequest(const QString &chatId, const QString &messageGuid)
+{
+    chatsMap[chatId.toULongLong()]->onContextMenuMessageRemovalSignal({messageGuid, 0,0,"", "", true});
 }
