@@ -2,16 +2,17 @@
 #include "qevent.h"
 #include "ui_MessageWidget.h"
 
-MessageWidget::MessageWidget(const QString& text, const QString& time, bool isAuthor, QWidget *parent) :
+MessageWidget::MessageWidget(const MessageInfo& msgInfo, Mediator *mediator, QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::MessageWidget)
+    ui(new Ui::MessageWidget),
+    msgInfo_{msgInfo},
+    mediator_{mediator}
 {
-    contextMenu.reset(new MessageContextMenu{});
-    connect(&*contextMenu, &MessageContextMenu::launchReminder, this, &MessageWidget::launchReminder);
     ui->setupUi(this);
+    contextMenu.reset(new MessageContextMenu{msgInfo, mediator});
     ui->message->setWordWrap(true);
     ui->messageRight->setWordWrap(true);
-    setText(text, time, isAuthor);
+    setText(msgInfo_.text, msgInfo_.sentTime, msgInfo_.isAuthor);
 }
 
 void MessageWidget::setText(const QString& text, const QString& time,bool isAuthor)
@@ -41,13 +42,9 @@ void MessageWidget::setText(const QString& text, const QString& time,bool isAuth
     ui->timeRight->setText(time);
 }
 
-QString MessageWidget::getText()
+const MessageInfo& MessageWidget::getMessageInfo()
 {
-    if(ui->message->text().isEmpty()){
-        return ui->messageRight->text();
-    }else{
-        return ui->message->text();
-    }
+    return msgInfo_;
 }
 
 MessageWidget::~MessageWidget()
@@ -62,9 +59,4 @@ void MessageWidget::mousePressEvent(QMouseEvent *event)
         // Set position of context menu and show it
         contextMenu->popup(globalPos.toPoint());
     }
-}
-
-void MessageWidget::launchReminder()
-{
-    emit proceedMessageReminder(getText());
 }

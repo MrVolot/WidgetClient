@@ -6,6 +6,7 @@
 #include "Chat.h"
 #include <optional>
 #include "ContactsListWidget.h"
+#include "Mediator.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -26,19 +27,22 @@ private:
     std::condition_variable cv;
     unsigned long long currentFriend=0;
     std::unique_ptr<ContactsListWidget> contactsListWidget;
+    Mediator *mediator_;
 
     bool canProceed{false};
-    void sendMessageToChat(const QString& msg, unsigned long long id);
+    void sendMessageToChat(const MessageInfo &messageInfo);
     void popupNotification(const QString &msg, const QString &friendName, unsigned long long id, unsigned long long timeout=0);
 private slots:
     void loadChatInfo(Contact& contact);
-    void sendMessage(const QString& msg, unsigned long long id);
-    void createMessageInstance(const QString& msg, unsigned long long id);
+    void sendMessage(const MessageInfo &msgInfo);
+    void createMessageInstance(const MessageInfo &msgInfo);
     void showAndActivate();
-    void finalizeMessageReminder(const QString &msg, unsigned long long id, unsigned long long timeout=0);
     void on_searchLine_returnPressed();
     void on_searchLine_textChanged(const QString& text);
     void cleanSearchLine();
+    void onContextMenuSlot(const MessageInfo &msgInfo);
+    void onContextMenuMessageRemovalFromDbSlot(const MessageInfo& msgInfo);
+    void onDeleteMessageRequest(const QString& chatId, const QString& messageGuid);
 signals:
-    void createMessageInstanceSignal(const QString& msg, unsigned long long id);
+    void createMessageInstanceSignal(const MessageInfo &msgInfo);
 };

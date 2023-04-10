@@ -1,12 +1,17 @@
 #include "MessageContextMenu.h"
 #include "ui_MessageContextMenu.h"
 
-MessageContextMenu::MessageContextMenu(QWidget *parent) :
+MessageContextMenu::MessageContextMenu(const MessageInfo& msgInfo, Mediator *mediator, QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::MessageContextMenu)
+    ui(new Ui::MessageContextMenu),
+    messageInfo{msgInfo},
+    mediator_{mediator}
 {
     setWindowFlags(Qt::Popup);
     ui->setupUi(this);
+
+    connect(this, &MessageContextMenu::launchReminder, mediator_, &Mediator::onContextMenuSignal);
+    connect(this, &MessageContextMenu::destroyMessageWidget, mediator_, &Mediator::onContextMenuMessageRemovalSignal);
 }
 
 MessageContextMenu::~MessageContextMenu()
@@ -29,7 +34,14 @@ void MessageContextMenu::popup(const QPoint& pos)
 
 void MessageContextMenu::on_notificationReminderButton_clicked()
 {
-    emit launchReminder();
+    emit launchReminder(messageInfo);
     hide();
+}
+
+
+void MessageContextMenu::on_deleteButton_clicked()
+{
+    //destroy MessageWidget object
+    emit destroyMessageWidget(messageInfo);
 }
 

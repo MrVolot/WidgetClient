@@ -5,18 +5,24 @@
 #include <iomanip>
 #include <iterator>
 #include <QDate>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
-Chat::Chat(const QString& nameArg, unsigned long long idArg, QWidget *parent) :
+Chat::Chat(unsigned long long friendId, const QString& friendName, Mediator *mediator, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Chat),
-    name{nameArg},
-    id{idArg}
+    friendId_{friendId},
+    friendName_{friendName},
+    mediator_{mediator}
 {
     ui->setupUi(this);
-    ui->receiverName->setText(name);
+    ui->receiverName->setText(friendName_);
     ui->messageList->setStyleSheet("QListWidget::item:hover {background: transparent;} "
                                    "QListWidget::item:selected:!active {background: transparent;} ");
     ui->messageList->setFocusPolicy(Qt::NoFocus);
+
+    connect(mediator_, &Mediator::contextMenuMessageRemovalSignal, this, &Chat::onContextMenuMessageRemovalSignal);
 }
 
 Chat::~Chat()
@@ -31,13 +37,21 @@ void Chat::loadChatHistory(std::vector<std::map<std::string, QString> > &chatHis
         std::string time{messageEntity["time"].toStdString()};
         time = time.substr(0, time.find("+")-4);
         auto correctTime {QDateTime::fromString(QString::fromStdString(time), "yyyy-MM-dd hh:mm")};
-        bool result{messageEntity["receiver"].toStdString() != std::to_string(id)};
+        bool result{messageEntity["receiver"].toStdString() != std::to_string(friendId_)};
         bool createDateWidget {false};
         if(previousDateTime.date() != correctTime.date()){
             previousDateTime = correctTime;
             createDateWidget = true;
         }
-        receiveMessage(messageEntity["message"], correctTime, createDateWidget, !result);
+        QString hoursAndMinutes{correctTime.time().toString()};
+        hoursAndMinutes.chop(3);
+        MessageInfo msgInfo{messageEntity["messageGuid"],
+                            messageEntity["sender"].toULongLong(),
+                            messageEntity["receiver"].toULongLong(),
+                            messageEntity["message"],
+                            hoursAndMinutes,
+                            !result};
+        receiveMessage(msgInfo, correctTime, createDateWidget);
     }
 }
 
@@ -60,7 +74,9 @@ void Chat::on_sendMsgBtn_clicked()
             item->setSizeHint(n->sizeHint());
             ui->messageList->addItem(item);
             ui->messageList->setItemWidget(item, n);
-            emit sendMessage(n->getText(), id);
+            int rowIndex = ui->messageList->row(item); // Get the row index
+            messagesMap[n->getMessageInfo().messageGuid.toStdString()] = rowIndex;
+            emit sendMessage(n->getMessageInfo());
         }
         ui->messageList->scrollToBottom();
         ui->msgFiled->clear();
@@ -68,28 +84,27 @@ void Chat::on_sendMsgBtn_clicked()
     }
 }
 
-void Chat::receiveMessage(const QString &msg, const QDateTime& sentTime, bool createDateWidget, bool isAuthor)
+void Chat::receiveMessage(const MessageInfo &msgInfo, const QDateTime& sentTime, bool createDateWidget)
 {
     try{
-    auto item {new QListWidgetItem{}};
-    auto correctTime{sentTime.time().toString()};
-    correctTime.chop(3);
-    MessageWidget* tmpWidget{new MessageWidget{msg, correctTime, isAuthor}};
-    connect(tmpWidget, &MessageWidget::proceedMessageReminder, this, &Chat::proceedMessageReminder);
-    if(createDateWidget || (!lastMessageDateTime.isNull() && lastMessageDateTime.date() != sentTime.date())){
-        MessagesDateWidget* dateWidget{new MessagesDateWidget{sentTime}};
-        auto item2 {new QListWidgetItem{}};
-        item2->setSizeHint(dateWidget->sizeHint());
-        ui->messageList->addItem(item2);
-        ui->messageList->setItemWidget(item2, dateWidget);
-    }
+        auto item {new QListWidgetItem{}};
+        MessageWidget* tmpWidget{new MessageWidget{msgInfo, mediator_}};
+        if(createDateWidget || (!lastMessageDateTime.isNull() && lastMessageDateTime.date() != sentTime.date())){
+            MessagesDateWidget* dateWidget{new MessagesDateWidget{sentTime}};
+            auto item2 {new QListWidgetItem{}};
+            item2->setSizeHint(dateWidget->sizeHint());
+            ui->messageList->addItem(item2);
+            ui->messageList->setItemWidget(item2, dateWidget);
+        }
 
-    item->setSizeHint(tmpWidget->sizeHint());
-    ui->messageList->addItem(item);
-    ui->messageList->setItemWidget(item, tmpWidget);
-    ui->messageList->scrollToBottom();
-    vectorOfMessages.clear();
-    lastMessageDateTime = sentTime;
+        item->setSizeHint(tmpWidget->sizeHint());
+        ui->messageList->addItem(item);
+        ui->messageList->setItemWidget(item, tmpWidget);
+        int rowIndex = ui->messageList->row(item); // Get the row index
+        messagesMap[tmpWidget->getMessageInfo().messageGuid.toStdString()] = rowIndex;
+        ui->messageList->scrollToBottom();
+        vectorOfMessages.clear();
+        lastMessageDateTime = sentTime;
     }catch(std::exception& exc){
         qDebug()<<exc.what();
     }
@@ -208,13 +223,28 @@ std::chrono::system_clock::time_point Chat::getChronoTime(const std::string &tim
 
 void Chat::createAndPushMessageWidget(const QString &msg, bool isAuthor)
 {
-    MessageWidget* tmpWidget{new MessageWidget{msg, getCurrentTime(), isAuthor}};
-    connect(tmpWidget, &MessageWidget::proceedMessageReminder, this, &Chat::proceedMessageReminder);
+    boost::uuids::random_generator generator;
+    MessageInfo msgInfo{boost::uuids::to_string(generator()).c_str(), 0, friendId_, msg, getCurrentTime(), isAuthor};
+    MessageWidget* tmpWidget{new MessageWidget{msgInfo, mediator_}};
     vectorOfMessages.push_back(tmpWidget);
 }
 
-void Chat::proceedMessageReminder(const QString &msg)
+void Chat::onContextMenuMessageRemovalSignal(const MessageInfo & msgInfo)
 {
-    emit finalizeMessageReminder(msg, id);
-}
+    auto it = messagesMap.find(msgInfo.messageGuid.toStdString());
+    if (it != messagesMap.end()) {
+        int rowIndex = it->second;
+        QListWidgetItem* item = ui->messageList->item(rowIndex);
 
+        // Remove the QListWidgetItem from the QListWidget
+        if (item) {
+            MessageWidget* widgetPtr = qobject_cast<MessageWidget*>(ui->messageList->itemWidget(item));
+            ui->messageList->removeItemWidget(item);
+            delete item;
+            delete widgetPtr;
+        }
+
+        // Remove the entry from the map
+        messagesMap.erase(it);
+    }
+}
