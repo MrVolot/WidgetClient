@@ -17,7 +17,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(boost::asio::io_service& service, const std::string& hash, QWidget *parent = nullptr);
+    MainWindow(boost::asio::io_service& service, const std::string& hash, bool isGuestAccount = false, QWidget *parent = nullptr);
     ~MainWindow();
 private:
     Ui::MainWindow *ui;

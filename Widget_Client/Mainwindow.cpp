@@ -6,7 +6,7 @@
 #include <QDateTime>
 #include "NotificationWidget.h"
 
-MainWindow::MainWindow(boost::asio::io_service& service, const std::string& hash, QWidget *parent)
+MainWindow::MainWindow(boost::asio::io_service& service, const std::string& hash, bool isGuestAccount, QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
@@ -24,7 +24,7 @@ MainWindow::MainWindow(boost::asio::io_service& service, const std::string& hash
     ui->contactsLayout->addWidget(contactsListWidget.get());
 
     //Setting up messenger_ and retrieving contacts
-    messenger_.reset(new Messenger<MainWindow>{service, hash, this});
+    messenger_.reset(new Messenger<MainWindow>{service, hash, this, isGuestAccount});
     connect(&messenger_->signalHandler, &MessengerSignalHandler::deleteMessageRequest, this, &MainWindow::onDeleteMessageRequest);
     messenger_->initializeConnection();
     messenger_->setReceiveMessageCallback(&MainWindow::sendMessageToChat);

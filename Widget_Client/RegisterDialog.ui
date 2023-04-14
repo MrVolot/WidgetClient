@@ -6,20 +6,20 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>295</width>
-    <height>130</height>
+    <width>350</width>
+    <height>250</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>295</width>
-    <height>130</height>
+    <width>350</width>
+    <height>250</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>295</width>
-    <height>130</height>
+    <width>350</width>
+    <height>250</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -56,7 +56,7 @@ QDialog QLineEdit#Password {
 }
 
 /* Register button */
-QDialog QPushButton#RegisterButton {
+QDialog QPushButton {
     background-color: #61AFEF;
     border: none;
     border-radius: 5px;
@@ -65,23 +65,10 @@ QDialog QPushButton#RegisterButton {
 }
 
 /* Hover state for register button */
-QDialog QPushButton#RegisterButton:hover {
+QDialog QPushButton:hover {
     background-color: #4B8BBA;
 }
 
-/* Register button */
-QDialog QPushButton#LoginButton {
-    background-color: #61AFEF;
-    border: none;
-    border-radius: 5px;
-    color: #F8F8F8;
-    padding: 10px;
-}
-
-/* Hover state for register button */
-QDialog QPushButton#LoginButton:hover {
-    background-color: #4B8BBA;
-}
 
 /* Window title bar */
 QDialog QHeaderView::section {
@@ -103,10 +90,10 @@ QDialog &gt; QWidget &gt; QGroupBox &gt; QFrame &gt; QFrame {
   <widget class="QWidget" name="verticalLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>291</width>
-     <height>131</height>
+     <x>30</x>
+     <y>10</y>
+     <width>281</width>
+     <height>211</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -140,7 +127,7 @@ QDialog &gt; QWidget &gt; QGroupBox &gt; QFrame &gt; QFrame {
      </widget>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <layout class="QVBoxLayout" name="verticalLayout">
       <property name="leftMargin">
        <number>1</number>
       </property>
@@ -151,16 +138,27 @@ QDialog &gt; QWidget &gt; QGroupBox &gt; QFrame &gt; QFrame {
        <number>2</number>
       </property>
       <item>
-       <widget class="QPushButton" name="LoginButton">
-        <property name="text">
-         <string>Login</string>
-        </property>
-       </widget>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QPushButton" name="LoginButton">
+          <property name="text">
+           <string>Login</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="RegisterButton">
+          <property name="text">
+           <string>Register</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
       <item>
-       <widget class="QPushButton" name="RegisterButton">
+       <widget class="QPushButton" name="guestLogin">
         <property name="text">
-         <string>Register</string>
+         <string>Connect as guest</string>
         </property>
        </widget>
       </item>

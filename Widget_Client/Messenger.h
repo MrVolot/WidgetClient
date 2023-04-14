@@ -34,6 +34,9 @@ class Messenger: public std::enable_shared_from_this<Messenger<Caller>>
     std::unique_ptr<SecureTransmitter> secureTransmitter_;
     std::function<void(Caller*, const MessageInfo &)> senderCallback_;
     boost::asio::ssl::context ssl_context_;
+    bool isGuestAccount_;
+    std::map<std::string, std::promise<std::string>>pendingPublicKeyPromises_;
+    std::string publicKey_;
 
     void readCallback(std::shared_ptr<IConnectionHandler<Messenger>> handler, const boost::system::error_code &err, size_t bytes_transferred);
     void writeCallback(std::shared_ptr<IConnectionHandler<Messenger>> handler, const boost::system::error_code &err, size_t bytes_transferred);
@@ -45,12 +48,14 @@ class Messenger: public std::enable_shared_from_this<Messenger<Caller>>
     void parsePossibleContacts(const std::string& jsonData);
     std::optional<Contact> getContactById(long long id);
     std::optional<std::vector<unsigned char>> tryGetSharedKeyById(unsigned long long id);
+    void deleteGuestAccount();
+    std::string requestPublicKey(unsigned long long userId);
 public:
     bool infoIsLoaded;
     bool possibleContactsLoaded;
     MessengerSignalHandler signalHandler;
 
-    Messenger(boost::asio::io_service& service, const std::string& hash, Caller* caller);
+    Messenger(boost::asio::io_service& service, const std::string& hash, Caller* caller, bool isGuestAccount = false);
     ~Messenger();
     void initializeConnection();
     void sendMessage(const MessageInfo & messageInfo);
@@ -67,14 +72,15 @@ public:
 };
 
 template <typename Caller>
-Messenger<Caller>::Messenger(boost::asio::io_service& service, const std::string& hash, Caller* caller):
+Messenger<Caller>::Messenger(boost::asio::io_service& service, const std::string& hash, Caller* caller, bool isGuestAccount):
     service_{service},
     hash_{hash},
     caller_{caller},
     config_{"config.txt"},
     infoIsLoaded{true},
     possibleContactsLoaded{false},
-    ssl_context_{boost::asio::ssl::context::sslv23}
+    ssl_context_{boost::asio::ssl::context::sslv23},
+    isGuestAccount_{isGuestAccount}
 {
     OpenSSL_add_all_algorithms();
     auto ip{ config_.getConfigValue("ipServer") };
@@ -113,12 +119,19 @@ Messenger<Caller>::Messenger(boost::asio::io_service& service, const std::string
     handler_->setWriteCallback(&Messenger::writeCallback);
 
     secureTransmitter_.reset(new SecureTransmitter{});
-    secureTransmitter_->setPrivateKey(privateKeyLocation.value());
+    if(isGuestAccount){
+        publicKey_ = secureTransmitter_->generateKeys();
+    }else{
+        secureTransmitter_->setPrivateKey(privateKeyLocation.value());
+    }
 }
 
 template <typename Caller>
 Messenger<Caller>::~Messenger()
 {
+    if(isGuestAccount_){
+        deleteGuestAccount();
+    }
     handler_->getSocket().close();
 }
 
@@ -171,6 +184,18 @@ void Messenger<Caller>::parseServerCommands(const std::string &data)
     case TRY_GET_CONTACT_BY_LOGIN:
         parsePossibleContacts(data);
         break;
+    case REQUEST_PUBLIC_KEY:{
+        std::string userId = value["id"].asString();
+        std::string publicKey = value["userPublicKey"].asString();
+
+        // If there's a promise waiting for the public key, set the value and remove the promise from the map
+        auto it = pendingPublicKeyPromises_.find(userId);
+        if (it != pendingPublicKeyPromises_.end()) {
+            it->second.set_value(publicKey);
+            pendingPublicKeyPromises_.erase(it);
+        }
+        break;
+    }
     case DELETE_MESSAGE:
         QString chatId{value["receiver"].asCString()};
         if(chatId.toULongLong() == id_){
@@ -188,23 +213,30 @@ void Messenger<Caller>::receiveMessage(const std::string &data)
     Json::Reader reader;
     reader.parse(data, value);
     auto senderId{std::stoull(value["sender"].asString())};
-    auto sharedKey {tryGetSharedKeyById(senderId)};
-    if(sharedKey.has_value()){
+    auto possibleSharedKey {tryGetSharedKeyById(senderId)};
+    std::vector<unsigned char> sharedKey{};
+    if(possibleSharedKey.has_value()){
         //what about isAuthor?
         //TODO: REMOVE ISAUTHOR
-        bool isAuthor{false};
-        if(senderId == id_){
-            isAuthor = true;
-        }
-        MessageInfo msgInfo{value["messageGuid"].asCString(),
-                            senderId,
-                            std::stoull(value["receiver"].asString()),
-                            secureTransmitter_->decryptMessage(value["message"].asString(),
-                                                               sharedKey.value()).c_str(),
-                            value["time"].asCString(),
-                            isAuthor};
-        senderCallback_(caller_, msgInfo);
+        sharedKey = possibleSharedKey.value();
+    }else{
+        std::string publicKey = requestPublicKey(senderId);
+        sharedKey = secureTransmitter_->generateSharedKey(publicKey);
+        friendList_.push_back({"", senderId, {senderId, ""}, sharedKey});
     }
+    bool isAuthor{false};
+    if(senderId == id_){
+        isAuthor = true;
+    }
+    MessageInfo msgInfo{value["messageGuid"].asCString(),
+                        senderId,
+                        std::stoull(value["receiver"].asString()),
+                        secureTransmitter_->decryptMessage(value["message"].asString(),
+                                                           sharedKey).c_str(),
+                        value["time"].asCString(),
+                        isAuthor};
+    senderCallback_(caller_, msgInfo);
+    //else should ask the server for the public key and then generate shared key
 }
 
 template<typename Caller>
@@ -247,13 +279,20 @@ void Messenger<Caller>::sendMessage(const MessageInfo & messageInfo)
     Json::FastWriter writer;
     value["receiver"] = std::to_string(messageInfo.friendId);//maybe leave without converting to string?
     auto sharedKey {tryGetSharedKeyById(messageInfo.friendId)};
+    std::string encryptedMsg;
     if(sharedKey.has_value()){
-        auto encryptedMsg{secureTransmitter_->encryptMessage(messageInfo.text.toStdString(), sharedKey.value())};
-        value["message"] = encryptedMsg;
-        value["command"] = SENDMESSAGE;
-        value["messageGuid"] = messageInfo.messageGuid.toStdString();
-        handler_->callWrite(writer.write(value));
+        encryptedMsg = secureTransmitter_->encryptMessage(messageInfo.text.toStdString(), sharedKey.value());
+
+    }else{
+        std::string publicKey = requestPublicKey(messageInfo.friendId);
+        sharedKey = secureTransmitter_->generateSharedKey(publicKey);
+        friendList_.push_back({"", messageInfo.friendId, {messageInfo.friendId, ""}, sharedKey.value()});
+        encryptedMsg = secureTransmitter_->encryptMessage(messageInfo.text.toStdString(), sharedKey.value());
     }
+    value["message"] = encryptedMsg;
+    value["command"] = SENDMESSAGE;
+    value["messageGuid"] = messageInfo.messageGuid.toStdString();
+    handler_->callWrite(writer.write(value));
 }
 
 template <typename Caller>
@@ -378,7 +417,13 @@ std::optional<Contact> Messenger<Caller>::getContactById(long long id){
 
 template <typename Caller>
 void Messenger<Caller>::processAfterHandshake() {
-    handler_->callWrite(hash_);
+    Json::Value value;
+    Json::FastWriter writer;
+    value["hash"] = hash_;
+    if(!publicKey_.empty()){
+        value["publicKey"] = publicKey_;
+    }
+    handler_->callWrite(writer.write(value));
 }
 
 template <typename Caller>
@@ -392,3 +437,34 @@ void Messenger<Caller>::removeMessageFromDb(const MessageInfo & msgInfo)
     value["senderId"] = msgInfo.senderId;
     handler_->callWrite(writer.write(value));
 }
+
+template <typename Caller>
+void Messenger<Caller>::deleteGuestAccount(){
+    Json::Value value;
+    Json::FastWriter writer;
+    value["command"] = DELETE_ACCOUNT;
+    value["id"] = std::to_string(id_);
+    handler_->callWrite(writer.write(value));
+}
+template <typename Caller>
+std::string Messenger<Caller>::requestPublicKey(unsigned long long userId) {
+    std::promise<std::string> promise;
+    auto future = promise.get_future();
+
+    // Create a JSON value with the request command and user ID
+    Json::Value value;
+    Json::StreamWriterBuilder writer;
+    std::string strUserId{std::to_string(userId)};
+    value["command"] = REQUEST_PUBLIC_KEY;
+    value["id"] = strUserId;
+
+    // Send the request to the server
+    handler_->callWrite(Json::writeString(writer, value));
+
+    // Store the promise in a map, using the userId as the key
+    pendingPublicKeyPromises_[strUserId] = std::move(promise);
+
+    // Wait for the response
+    return future.get();
+}
+
