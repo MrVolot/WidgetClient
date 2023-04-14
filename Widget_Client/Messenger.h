@@ -121,7 +121,6 @@ Messenger<Caller>::Messenger(boost::asio::io_service& service, const std::string
     secureTransmitter_.reset(new SecureTransmitter{});
     if(isGuestAccount){
         publicKey_ = secureTransmitter_->generateKeys();
-        //generate public key and send it to server
     }else{
         secureTransmitter_->setPrivateKey(privateKeyLocation.value());
     }
