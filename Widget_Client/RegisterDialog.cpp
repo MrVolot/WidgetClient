@@ -1,6 +1,10 @@
 #include "RegisterDialog.h"
 #include "ui_RegisterDialog.h"
 #include "certificateUtils.h"
+#include "Commands.h"
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 RegisterDialog::RegisterDialog(boost::asio::io_service& service, QWidget *parent) :
     QDialog(parent),
@@ -140,10 +144,10 @@ void RegisterDialog::on_LoginButton_clicked()
     std::unique_lock<std::mutex> locker{mtx_};
     cv_.wait(locker);
     auto serverResponse {checkServerResponse()};
-    if(serverResponse == 0x0001 || serverResponse == 0x0002){
+    if(serverResponse == AUTHSUCCESS || serverResponse == RIGHTCREDENTIALS || serverResponse == GUEST_USER_USER_SUCCESSFUL_LOGIN){
         emit onSuccessfulLogin(hash_);
     }
-    if(serverResponse == 0x0004){
+    if(serverResponse == WRONGCREDENTIALS){
         ui->Password->clear();
         ui->Password->setPlaceholderText("Wrong credentials!");
     }
@@ -159,10 +163,10 @@ void RegisterDialog::on_RegisterButton_clicked()
     std::unique_lock<std::mutex> locker{mtx_};
     cv_.wait(locker);
     auto serverResponse {checkServerResponse()};
-    if(serverResponse == 0x0001 || serverResponse == 0x0002){
+    if(serverResponse == AUTHSUCCESS || serverResponse == RIGHTCREDENTIALS || serverResponse == GUEST_USER_USER_SUCCESSFUL_LOGIN){
         emit onSuccessfulLogin(hash_);
     }
-    if(serverResponse == 0x0005){
+    if(serverResponse == USERALREADYEXISTS){
         ui->Password->clear();
         ui->Password->setPlaceholderText("User already exists!");
     }
@@ -170,24 +174,24 @@ void RegisterDialog::on_RegisterButton_clicked()
 
 bool RegisterDialog::validateCredentials()
 {
-    if(ui->Login->text().length() > 16){
-        ui->Password->clear();
-        ui->Login->clear();
-        ui->Login->setPlaceholderText("Login is too long!");
-        return false;
-    }
-    if(ui->Login->text().length() < 4){
-        ui->Password->clear();
-        ui->Login->clear();
-        ui->Login->setPlaceholderText("Login is too short!");
-        return false;
-    }
-    if(ui->Password->text().length() < 8){
-        ui->Password->clear();
-        ui->Login->clear();
-        ui->Password->setPlaceholderText("Password is too short!");
-        return false;
-    }
+//    if(ui->Login->text().length() > 16){
+//        ui->Password->clear();
+//        ui->Login->clear();
+//        ui->Login->setPlaceholderText("Login is too long!");
+//        return false;
+//    }
+//    if(ui->Login->text().length() < 4){
+//        ui->Password->clear();
+//        ui->Login->clear();
+//        ui->Login->setPlaceholderText("Login is too short!");
+//        return false;
+//    }
+//    if(ui->Password->text().length() < 8){
+//        ui->Password->clear();
+//        ui->Login->clear();
+//        ui->Password->setPlaceholderText("Password is too short!");
+//        return false;
+//    }
     return true;
 }
 
@@ -200,5 +204,26 @@ void RegisterDialog::sendCredentials(const std::string& command)
     value["deviceId"] = createDeviceId();
     value["password"] = ui->Password->text().toStdString();
     handler_->callWrite(writer_.write(value));
+}
+
+
+void RegisterDialog::on_guestLogin_clicked()
+{
+    boost::uuids::random_generator generator;
+    uniqueGuid_ = boost::uuids::to_string(generator());
+    Json::Value value;
+    Json::FastWriter writer_;
+    value["command"] = "guestUserLogin";
+    handler_->callWrite(writer_.write(value));
+    std::unique_lock<std::mutex> locker{mtx_};
+    cv_.wait(locker);
+    auto serverResponse {checkServerResponse()};
+    if(serverResponse == AUTHSUCCESS || serverResponse == RIGHTCREDENTIALS || serverResponse == GUEST_USER_USER_SUCCESSFUL_LOGIN){
+        emit onSuccessfulLogin(hash_, true);
+    }
+    if(serverResponse == USERALREADYEXISTS){
+        ui->Password->clear();
+        ui->Password->setPlaceholderText("User already exists!");
+    }
 }
 

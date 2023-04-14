@@ -1,4 +1,5 @@
 #include "SecureTransmitter.h"
+#include <ostream>
 #include <stdexcept>
 #include <openssl/rsa.h>
 #include <openssl/pem.h>
@@ -6,7 +7,7 @@
 #include "openssl/err.h"
 #include <QDebug>
 
-SecureTransmitter::SecureTransmitter()
+SecureTransmitter::SecureTransmitter(): privateKey_{nullptr}
 {
 
 }
@@ -191,4 +192,54 @@ void SecureTransmitter::print_openssl_error() {
     } else {
         qDebug() << "No OpenSSL error available";
     }
+}
+
+std::string SecureTransmitter::generateKeys()
+{
+    // 1. Select the elliptic curve
+    EC_KEY* ec_key = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
+    if (!ec_key) {
+        throw std::runtime_error("Error creating EC_KEY structure");
+    }
+
+    // 2. Generate the EC key pair
+    if (EC_KEY_generate_key(ec_key) != 1) {
+        EC_KEY_free(ec_key);
+        throw std::runtime_error("Error generating EC key pair");
+    }
+
+    // 3. Extract the private and public keys
+    EVP_PKEY* private_key = EVP_PKEY_new();
+    EVP_PKEY_set1_EC_KEY(private_key, ec_key);
+
+    // 4. Store the private key in the class member
+    if (privateKey_) {
+        EVP_PKEY_free(privateKey_);
+    }
+    privateKey_ = private_key;
+
+    // 5. Export the public key to a string
+    BIO* public_key_bio = BIO_new(BIO_s_mem());
+    if (!public_key_bio) {
+        EC_KEY_free(ec_key);
+        throw std::runtime_error("Failed to create BIO for public key export");
+    }
+
+    if (!PEM_write_bio_EC_PUBKEY(public_key_bio, ec_key)) {
+        print_openssl_error();
+        BIO_free(public_key_bio);
+        EC_KEY_free(ec_key);
+        throw std::runtime_error("Failed to write public key to BIO");
+    }
+
+    BUF_MEM* public_key_mem;
+    BIO_get_mem_ptr(public_key_bio, &public_key_mem);
+    std::string public_key_str(public_key_mem->data, public_key_mem->length);
+
+    // 6. Clean up
+    BIO_free(public_key_bio);
+    EC_KEY_free(ec_key);
+
+    // 7. Return the public key as a string
+    return public_key_str;
 }

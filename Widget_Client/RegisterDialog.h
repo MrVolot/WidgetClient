@@ -26,6 +26,7 @@ class RegisterDialog : public QDialog, public std::enable_shared_from_this<Regis
     std::string hash_;
     Config config_;
     boost::asio::ssl::context ssl_context_;
+    std::string uniqueGuid_;
 
     void writeCallback(std::shared_ptr<IConnectionHandler<RegisterDialog>> handler, const boost::system::error_code &err, size_t bytes_transferred);
     void readCallback(std::shared_ptr<IConnectionHandler<RegisterDialog>> handler, const boost::system::error_code &err, size_t bytes_transferred);
@@ -45,12 +46,14 @@ private slots:
 
     void on_RegisterButton_clicked();
 
+    void on_guestLogin_clicked();
+
 private:
     Ui::RegisterDialog *ui;
     bool validateCredentials();
     void sendCredentials(const std::string& command);
 
 signals:
-    void onSuccessfulLogin(const std::string& hash);
+    void onSuccessfulLogin(const std::string& hash, bool isGuestAccount = false);
 };
 

@@ -12,6 +12,6 @@ class WindowManager: public QObject
 public:
     WindowManager(boost::asio::io_service& service);
 private slots:
-    void onSuccessfulLogin(const std::string& hash);
+    void onSuccessfulLogin(const std::string& hash, bool isGuestAccount = false);
 };
 
