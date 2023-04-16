@@ -21,8 +21,8 @@ MainWindow::MainWindow(boost::asio::io_service& service, const std::string& hash
     contactsListWidget.reset(new ContactsListWidget{});
     connect(&*contactsListWidget, &ContactsListWidget::loadChatInfo, this, &MainWindow::loadChatInfo);
     connect(&*contactsListWidget, &ContactsListWidget::cleanSearchLine, this, &MainWindow::cleanSearchLine);
-    //ui->leftLayout->addWidget(contactsListWidget.get());
     ui->contactsListLayout->addWidget(contactsListWidget.get());
+
     //Setting up messenger_ and retrieving contacts
     messenger_.reset(new Messenger<MainWindow>{service, hash, this, isGuestAccount});
     connect(&messenger_->signalHandler, &MessengerSignalHandler::deleteMessageRequest, this, &MainWindow::onDeleteMessageRequest);

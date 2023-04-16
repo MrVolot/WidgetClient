@@ -266,7 +266,6 @@ void Messenger<Caller>::fillFriendList(const std::string& jsonData)
     auto dataArray{value["data"]};
     id_ = value["personalId"].asLargestUInt();
     personalEmail_ = value["personalEmail"].asString();
-    qDebug()<< personalEmail_.c_str();
     for(auto& dataValue : dataArray){
         QString lastMessage{""};
         unsigned long long senderId{};
@@ -495,7 +494,6 @@ std::string& Messenger<Caller>::getEmail(){
 
 template <typename Caller>
 void Messenger<Caller>::sendEmailForCodeVerification(const std::string& email){
-    qDebug()<<"sendEmailForCodeVerification in messenger called";
     Json::Value value;
     Json::FastWriter writer;
     value["command"] = EMAIL_ADDITION;
