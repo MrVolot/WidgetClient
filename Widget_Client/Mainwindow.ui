@@ -126,7 +126,7 @@ QLabel {
        <number>0</number>
       </property>
       <widget class="QWidget" name="verticalLayoutWidget">
-       <layout class="QVBoxLayout" name="contactsLayout">
+       <layout class="QVBoxLayout" name="leftLayout">
         <property name="spacing">
          <number>0</number>
         </property>
@@ -146,10 +146,31 @@ QLabel {
           </property>
          </widget>
         </item>
+        <item>
+         <layout class="QVBoxLayout" name="contactsListLayout"/>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="buttonsVerLayout">
+          <item>
+           <layout class="QHBoxLayout" name="buttonsHorLayout">
+            <item>
+             <widget class="QPushButton" name="settingsButton">
+              <property name="styleSheet">
+               <string notr="true"/>
+              </property>
+              <property name="text">
+               <string>Settings</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
        </layout>
       </widget>
       <widget class="QWidget" name="verticalLayoutWidget_2">
-       <layout class="QVBoxLayout" name="chatLayout">
+       <layout class="QVBoxLayout" name="rightLayout">
         <property name="spacing">
          <number>0</number>
         </property>

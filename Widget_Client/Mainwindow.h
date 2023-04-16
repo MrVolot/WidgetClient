@@ -7,6 +7,7 @@
 #include <optional>
 #include "ContactsListWidget.h"
 #include "Mediator.h"
+#include "SettingsDialog.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -28,6 +29,7 @@ private:
     unsigned long long currentFriend=0;
     std::unique_ptr<ContactsListWidget> contactsListWidget;
     Mediator *mediator_;
+    std::unique_ptr<SettingsDialog> settingsDialog_;
 
     bool canProceed{false};
     void sendMessageToChat(const MessageInfo &messageInfo);
@@ -43,6 +45,10 @@ private slots:
     void onContextMenuSlot(const MessageInfo &msgInfo);
     void onContextMenuMessageRemovalFromDbSlot(const MessageInfo& msgInfo);
     void onDeleteMessageRequest(const QString& chatId, const QString& messageGuid);
+    void on_settingsButton_clicked();
+    void onSendEmailForVerificationSignal(const std::string& email);
+    void onSendVerificationCodeSignal(const std::string& code);
+    void onDisableEmailAuthentication();
 signals:
     void createMessageInstanceSignal(const MessageInfo &msgInfo);
 };

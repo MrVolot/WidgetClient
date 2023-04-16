@@ -37,6 +37,8 @@ class Messenger: public std::enable_shared_from_this<Messenger<Caller>>
     bool isGuestAccount_;
     std::map<std::string, std::promise<std::string>>pendingPublicKeyPromises_;
     std::string publicKey_;
+    std::string personalEmail_;
+    std::unordered_map<int, std::promise<void>> pendingPromises_;
 
     void readCallback(std::shared_ptr<IConnectionHandler<Messenger>> handler, const boost::system::error_code &err, size_t bytes_transferred);
     void writeCallback(std::shared_ptr<IConnectionHandler<Messenger>> handler, const boost::system::error_code &err, size_t bytes_transferred);
@@ -69,6 +71,10 @@ public:
     void cleanPossibleContacts();
     void processAfterHandshake();
     void removeMessageFromDb(const MessageInfo & msgInfo);
+    std::string& getEmail();
+    void sendEmailForCodeVerification(const std::string& email);
+    void sendVerificationCode(const std::string &verCode);
+    void disableEmailAuth();
 };
 
 template <typename Caller>
@@ -171,7 +177,16 @@ void Messenger<Caller>::parseServerCommands(const std::string &data)
     Json::Value value;
     Json::Reader reader;
     reader.parse(data, value);
-    switch(value["command"].asInt()){
+    int command = value["command"].asInt();
+
+    // Check if there's a promise waiting for this command
+    auto it = pendingPromises_.find(command);
+    if (it != pendingPromises_.end()) {
+        it->second.set_value();
+        pendingPromises_.erase(it);
+        // If you still want to process the command after resolving the promise, don't return here
+    }
+    switch(command){
     case SENDMESSAGE:
         receiveMessage(data);
         break;
@@ -196,12 +211,16 @@ void Messenger<Caller>::parseServerCommands(const std::string &data)
         }
         break;
     }
-    case DELETE_MESSAGE:
+    case DELETE_MESSAGE:{
         QString chatId{value["receiver"].asCString()};
         if(chatId.toULongLong() == id_){
             chatId = value["sender"].asCString();
         }
         emit signalHandler.deleteMessageRequest(chatId, value["messageGuid"].asCString());
+        break;
+    }
+    case CODE_VERIFICATION:
+        emit signalHandler.sendCodeVerificationResult(value["verResult"].asBool());
         break;
     }
 }
@@ -236,7 +255,6 @@ void Messenger<Caller>::receiveMessage(const std::string &data)
                         value["time"].asCString(),
                         isAuthor};
     senderCallback_(caller_, msgInfo);
-    //else should ask the server for the public key and then generate shared key
 }
 
 template<typename Caller>
@@ -247,6 +265,7 @@ void Messenger<Caller>::fillFriendList(const std::string& jsonData)
     reader.parse(jsonData, value);
     auto dataArray{value["data"]};
     id_ = value["personalId"].asLargestUInt();
+    personalEmail_ = value["personalEmail"].asString();
     for(auto& dataValue : dataArray){
         QString lastMessage{""};
         unsigned long long senderId{};
@@ -468,3 +487,43 @@ std::string Messenger<Caller>::requestPublicKey(unsigned long long userId) {
     return future.get();
 }
 
+template <typename Caller>
+std::string& Messenger<Caller>::getEmail(){
+    return personalEmail_;
+}
+
+template <typename Caller>
+void Messenger<Caller>::sendEmailForCodeVerification(const std::string& email){
+    Json::Value value;
+    Json::FastWriter writer;
+    value["command"] = EMAIL_ADDITION;
+    value["email"] = email;
+    handler_->callWrite(writer.write(value));
+}
+
+template <typename Caller>
+void Messenger<Caller>::sendVerificationCode(const std::string &verCode)
+{
+    Json::Value value;
+    Json::FastWriter writer_;
+    value["command"] = CODE_VERIFICATION;
+    value["verCode"] = verCode;
+
+    // Create a promise for the email code confirmation command and store it in the map
+    std::promise<void> emailCodeConfirmationPromise;
+    std::future<void> emailCodeConfirmationFuture = emailCodeConfirmationPromise.get_future();
+    pendingPromises_[CODE_VERIFICATION] = std::move(emailCodeConfirmationPromise);
+
+    handler_->callWrite(writer_.write(value));
+
+    // Wait for the response by calling wait() or get() on the future
+    emailCodeConfirmationFuture.wait();
+}
+
+template <typename Caller>
+void Messenger<Caller>::disableEmailAuth(){
+    Json::Value value;
+    Json::FastWriter writer;
+    value["command"] = DISABLE_EMAIL_AUTH;
+    handler_->callWrite(writer.write(value));
+}

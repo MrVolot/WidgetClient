@@ -1,4 +1,5 @@
 #include "RegisterDialog.h"
+#include "CodeVerificationWidget.h"
 #include "ui_RegisterDialog.h"
 #include "certificateUtils.h"
 #include "Commands.h"
@@ -14,6 +15,13 @@ RegisterDialog::RegisterDialog(boost::asio::io_service& service, QWidget *parent
     ui(new Ui::RegisterDialog)
 {
     ui->setupUi(this);
+    codeVerificationWidget_.reset(new CodeVerificationWidget(this));
+    ui->stackedWidget->addWidget(codeVerificationWidget_.get());
+    ui->stackedWidget->setCurrentIndex(0);
+
+    connect(&*codeVerificationWidget_, &CodeVerificationWidget::sendInputSignal, this, &RegisterDialog::onSendVerificationCodeSignal);
+    connect(this, &RegisterDialog::cleanEmailCodeAndShowError, &*codeVerificationWidget_, &CodeVerificationWidget::onCleanAndShowError);
+    connect(&*codeVerificationWidget_, &CodeVerificationWidget::backButtonSignal, this, &RegisterDialog::onSwitchToLoginWidget);
 
     auto ip{ config_.getConfigValue("ipLoginServer") };
     auto portStr{ config_.getConfigValue("portLoginServer") };
@@ -151,6 +159,15 @@ void RegisterDialog::on_LoginButton_clicked()
         ui->Password->clear();
         ui->Password->setPlaceholderText("Wrong credentials!");
     }
+    if(serverResponse == EMAIL_CODE_VERIFICATION){
+        codeVerificationWidget_->setLabelText("Please enter code that was sent to your email");
+        ui->stackedWidget->setCurrentIndex(2);
+        Json::Value value;
+        Json::Reader reader;
+        reader.parse(serverResponseString_, value);
+        personalId_ = std::stoull(value["personalId"].asString());
+        return;
+    }
 }
 
 
@@ -225,5 +242,29 @@ void RegisterDialog::on_guestLogin_clicked()
         ui->Password->clear();
         ui->Password->setPlaceholderText("User already exists!");
     }
+}
+
+void RegisterDialog::onSendVerificationCodeSignal(const std::string &verCode)
+{
+    Json::Value value;
+    Json::FastWriter writer_;
+    value["command"] = "emailCodeConfirmation";
+    value["verCode"] = verCode;
+    value["userId"] = std::to_string(personalId_);
+    handler_->callWrite(writer_.write(value));
+    std::unique_lock<std::mutex> locker{mtx_};
+    cv_.wait(locker);
+    auto serverResponse {checkServerResponse()};
+    if(serverResponse == CORRECT_CODE){
+        emit onSuccessfulLogin(hash_);
+    }
+    if(serverResponse == WRONG_CODE){
+        emit cleanEmailCodeAndShowError("Wrong code! Try again.");
+    }
+}
+
+void RegisterDialog::onSwitchToLoginWidget()
+{
+    ui->stackedWidget->setCurrentIndex(0);
 }
 

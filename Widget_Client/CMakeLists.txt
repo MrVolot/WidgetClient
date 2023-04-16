@@ -64,6 +64,14 @@ set(PROJECT_SOURCES
         MessageInfo.h
         MessengerSignalHandler.h
         MessengerSignalHandler.cpp
+        SettingsDialog.h
+        SettingsDialog.cpp
+        SettingsDialog.ui
+        AnimatedToggleButton.h
+        AnimatedToggleButton.cpp
+        CodeVerificationWidget.h
+        CodeVerificationWidget.cpp
+        CodeVerificationWidget.ui
 )
 
 set(BOOST_LIBRARYDIR D:/Boost/boost-build/lib)

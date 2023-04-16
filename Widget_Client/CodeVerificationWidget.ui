@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CodeVerificationWidget</class>
+ <widget class="QWidget" name="CodeVerificationWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>317</width>
+    <height>184</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">/* Main dialog */
+QWidget {
+    background-color: #282C34;
+}
+
+/* Title */
+QWidget windowTitle {
+    color: #F8F8F8;
+    font-size: 18pt;
+}
+
+/* Login input field */
+QWidget QLineEdit {
+    background-color: #2C313C;
+    border: none;
+    border-radius: 5px;
+    color: #F8F8F8;
+    padding: 10px;
+}
+
+/* Register button */
+QWidget QPushButton {
+    background-color: #61AFEF;
+    border: none;
+    border-radius: 5px;
+    color: #F8F8F8;
+    padding: 10px;
+}
+
+/* Hover state for register button */
+QWidget QPushButton:hover {
+    background-color: #4B8BBA;
+}
+
+
+/* Window title bar */
+QWidget QHeaderView::section {
+    background-color: #282C34;
+    color: #F8F8F8;
+    font-size: 16pt;
+    padding: 5px 10px;
+    border: none;
+}
+
+QWidget &gt; QGroupBox &gt; QFrame &gt; QFrame {
+    background-color: #282C34;
+    color: #F8F8F8;
+    font-size: 16pt;
+    padding: 5px 10px;
+    border: none;
+}</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_2">
+   <item>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QLabel" name="verText">
+       <property name="text">
+        <string>TextLabel</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="verCodeInput"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="backButton">
+       <property name="text">
+        <string>Back</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
