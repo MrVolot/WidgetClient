@@ -38,16 +38,7 @@ QDialog windowTitle {
 }
 
 /* Login input field */
-QDialog QLineEdit#Login {
-    background-color: #2C313C;
-    border: none;
-    border-radius: 5px;
-    color: #F8F8F8;
-    padding: 10px;
-}
-
-/* Password input field */
-QDialog QLineEdit#Password {
+QDialog QLineEdit {
     background-color: #2C313C;
     border: none;
     border-radius: 5px;
@@ -87,85 +78,78 @@ QDialog &gt; QWidget &gt; QGroupBox &gt; QFrame &gt; QFrame {
     border: none;
 }</string>
   </property>
-  <widget class="QWidget" name="verticalLayoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>30</x>
-     <y>10</y>
-     <width>281</width>
-     <height>211</height>
-    </rect>
-   </property>
-   <layout class="QVBoxLayout" name="verticalLayout_2">
-    <property name="leftMargin">
-     <number>3</number>
-    </property>
-    <property name="topMargin">
-     <number>3</number>
-    </property>
-    <item>
-     <widget class="QLineEdit" name="Login">
-      <property name="styleSheet">
-       <string notr="true"/>
-      </property>
-      <property name="placeholderText">
-       <string>Login</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QLineEdit" name="Password">
-      <property name="styleSheet">
-       <string notr="true"/>
-      </property>
-      <property name="echoMode">
-       <enum>QLineEdit::Password</enum>
-      </property>
-      <property name="placeholderText">
-       <string>Password</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <layout class="QVBoxLayout" name="verticalLayout">
-      <property name="leftMargin">
-       <number>1</number>
-      </property>
-      <property name="topMargin">
-       <number>1</number>
-      </property>
-      <property name="bottomMargin">
-       <number>2</number>
-      </property>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout_2">
+   <item>
+    <widget class="QStackedWidget" name="stackedWidget">
+     <property name="currentIndex">
+      <number>1</number>
+     </property>
+     <widget class="QWidget" name="LoginWidget">
+      <widget class="QWidget" name="verticalLayoutWidget_2">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>20</y>
+         <width>291</width>
+         <height>191</height>
+        </rect>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
-         <widget class="QPushButton" name="LoginButton">
-          <property name="text">
+         <widget class="QLineEdit" name="Login">
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
+          <property name="placeholderText">
            <string>Login</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="RegisterButton">
+         <widget class="QLineEdit" name="Password">
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
+          <property name="echoMode">
+           <enum>QLineEdit::Password</enum>
+          </property>
+          <property name="placeholderText">
+           <string>Password</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QPushButton" name="LoginButton">
+            <property name="text">
+             <string>Login</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="RegisterButton">
+            <property name="text">
+             <string>Register</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QPushButton" name="guestLogin">
           <property name="text">
-           <string>Register</string>
+           <string>Connect as guest</string>
           </property>
          </widget>
         </item>
        </layout>
-      </item>
-      <item>
-       <widget class="QPushButton" name="guestLogin">
-        <property name="text">
-         <string>Connect as guest</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-   </layout>
-  </widget>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="EmailAuthWidget"/>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections/>

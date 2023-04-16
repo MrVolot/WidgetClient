@@ -21,8 +21,8 @@ MainWindow::MainWindow(boost::asio::io_service& service, const std::string& hash
     contactsListWidget.reset(new ContactsListWidget{});
     connect(&*contactsListWidget, &ContactsListWidget::loadChatInfo, this, &MainWindow::loadChatInfo);
     connect(&*contactsListWidget, &ContactsListWidget::cleanSearchLine, this, &MainWindow::cleanSearchLine);
-    ui->contactsLayout->addWidget(contactsListWidget.get());
-
+    //ui->leftLayout->addWidget(contactsListWidget.get());
+    ui->contactsListLayout->addWidget(contactsListWidget.get());
     //Setting up messenger_ and retrieving contacts
     messenger_.reset(new Messenger<MainWindow>{service, hash, this, isGuestAccount});
     connect(&messenger_->signalHandler, &MessengerSignalHandler::deleteMessageRequest, this, &MainWindow::onDeleteMessageRequest);
@@ -35,6 +35,13 @@ MainWindow::MainWindow(boost::asio::io_service& service, const std::string& hash
     mediator_ = new Mediator(this);
     connect(mediator_, &Mediator::contextMenuSignal, this, &MainWindow::onContextMenuSlot);
     connect(mediator_, &Mediator::contextMenuMessageRemovalFromDbSignal, this, &MainWindow::onContextMenuMessageRemovalFromDbSlot);
+
+    settingsDialog_.reset(new SettingsDialog(this));
+
+    connect(&*settingsDialog_, &SettingsDialog::sendEmailForVerificationSignal, this, &MainWindow::onSendEmailForVerificationSignal);
+    connect(&*settingsDialog_, &SettingsDialog::sendVerificationCodeSignal, this, &MainWindow::onSendVerificationCodeSignal);
+    connect(&*settingsDialog_, &SettingsDialog::disableEmailAuthenticationSignal, this, &MainWindow::onDisableEmailAuthentication);
+    connect(&messenger_->signalHandler, &MessengerSignalHandler::sendCodeVerificationResult, &*settingsDialog_, &SettingsDialog::retrieveCodeVerificationResult);
 }
 
 MainWindow::~MainWindow()
@@ -67,9 +74,9 @@ void MainWindow::loadChatInfo(Contact& contact)
     connect(&(*(chatsMap[id])), &Chat::sendMessage, this, &MainWindow::sendMessage);
     if(currentFriendId!=0){
         chatsMap[currentFriendId]->setVisible(false);
-        ui->chatLayout->replaceWidget(chatsMap[currentFriendId].get(), chatsMap[id].get());
+        ui->rightLayout->replaceWidget(chatsMap[currentFriendId].get(), chatsMap[id].get());
     }else{
-        ui->chatLayout->addWidget(chatsMap[id].get());
+        ui->rightLayout->addWidget(chatsMap[id].get());
     }
     chatsMap[id]->loadChatHistory(chatHistory);
     contactsListWidget->setCurrentFriendId(id);
@@ -107,7 +114,7 @@ void MainWindow::createMessageInstance(const MessageInfo &msgInfo)
     auto currentItem {contactsListWidget->getContactsWidget()->currentItem()};
     auto currentWidget{dynamic_cast<ContactsWidget*>(contactsListWidget->getContactsWidget()->itemWidget(currentItem))};
     if(QApplication::applicationState() == Qt::ApplicationInactive ||
-            (ui->chatLayout->isEmpty() || (friendWidget.has_value() && friendWidget.value().second->getContact().getId()!=currentWidget->getContact().getId())))
+        (ui->rightLayout->isEmpty() || (friendWidget.has_value() && friendWidget.value().second->getContact().getId()!=currentWidget->getContact().getId())))
     {
         popupNotification(tmpMsgInfo.text, friendWidget.value().second->getContact().getName(), id);
     }
@@ -164,3 +171,26 @@ void MainWindow::onDeleteMessageRequest(const QString &chatId, const QString &me
 {
     chatsMap[chatId.toULongLong()]->onContextMenuMessageRemovalSignal({messageGuid, 0,0,"", "", true});
 }
+
+void MainWindow::on_settingsButton_clicked()
+{
+    //open up the settings widget
+    settingsDialog_->setCurrentEmail(messenger_->getEmail());
+    settingsDialog_->showWindow();
+}
+
+void MainWindow::onSendEmailForVerificationSignal(const std::string &email)
+{
+    messenger_->sendEmailForCodeVerification(email);
+}
+
+void MainWindow::onSendVerificationCodeSignal(const std::string &code)
+{
+    messenger_->sendVerificationCode(code);
+}
+
+void MainWindow::onDisableEmailAuthentication()
+{
+    messenger_->disableEmailAuth();
+}
+
