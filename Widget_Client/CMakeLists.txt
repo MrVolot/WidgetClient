@@ -147,3 +147,5 @@ install(TARGETS Widget_Client
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(Widget_Client)
 endif()
+
+add_subdirectory(tests)

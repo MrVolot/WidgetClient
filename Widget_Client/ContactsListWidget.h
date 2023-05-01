@@ -3,7 +3,7 @@
 #include <QWidget>
 #include <QListWidget>
 #include <QStackedWidget>
-#include <Contact.h>
+#include "Contact.h"
 #include "ContactsWidget.h"
 
 namespace Ui {

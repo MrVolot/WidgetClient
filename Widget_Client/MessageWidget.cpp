@@ -42,7 +42,7 @@ void MessageWidget::setText(const QString& text, const QString& time,bool isAuth
     ui->timeRight->setText(time);
 }
 
-const MessageInfo& MessageWidget::getMessageInfo()
+const MessageInfo& MessageWidget::getMessageInfo() const
 {
     return msgInfo_;
 }

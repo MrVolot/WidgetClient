@@ -1,6 +1,6 @@
 #pragma once
 
-#include <MessageWidget.h>
+#include "MessageWidget.h"
 #include <QWidget>
 #include <QDateTime>
 
@@ -11,7 +11,7 @@ class Chat;
 class Chat : public QWidget
 {
     Q_OBJECT
-
+    friend class ChatFunctionalTests;
 public:
     explicit Chat(unsigned long long friendId, const QString& friendName, Mediator *mediator, QWidget *parent = nullptr);
     void receiveMessage(const MessageInfo& msgInfo, const QDateTime& sentTime, bool createDateWidget);

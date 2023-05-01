@@ -158,6 +158,7 @@ int Chat::getClosestPunctuationMarkPosition(const QString &msg, bool isLeftToRig
     if(iter!=msg.end()){
         return std::distance(msg.begin(), iter);
     }
+    return 0;
 }
 
 void Chat::splitIntoMessages(const QString &msg, bool isAuthor)
