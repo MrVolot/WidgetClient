@@ -72,6 +72,8 @@ set(PROJECT_SOURCES
         CodeVerificationWidget.h
         CodeVerificationWidget.cpp
         CodeVerificationWidget.ui
+        FileDropDialog.h
+        FileDropDialog.cpp
 )
 
 set(BOOST_LIBRARYDIR D:/Boost/boost-build/lib)

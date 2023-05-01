@@ -49,6 +49,7 @@ private slots:
     void onSendEmailForVerificationSignal(const std::string& email);
     void onSendVerificationCodeSignal(const std::string& code);
     void onDisableEmailAuthentication();
+    void sendFile(const std::string& filePath, unsigned long long receiverId);
 signals:
     void createMessageInstanceSignal(const MessageInfo &msgInfo);
 };

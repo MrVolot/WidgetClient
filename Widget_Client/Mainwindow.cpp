@@ -72,6 +72,7 @@ void MainWindow::loadChatInfo(Contact& contact)
     auto chatHistory{messenger_->getChatHistory()};
     chatsMap[id].reset(new Chat{id, name, mediator_});
     connect(&(*(chatsMap[id])), &Chat::sendMessage, this, &MainWindow::sendMessage);
+    connect(&(*(chatsMap[id])), &Chat::sendFile, this, &MainWindow::sendFile);
     if(currentFriendId!=0){
         chatsMap[currentFriendId]->setVisible(false);
         ui->rightLayout->replaceWidget(chatsMap[currentFriendId].get(), chatsMap[id].get());
@@ -192,5 +193,10 @@ void MainWindow::onSendVerificationCodeSignal(const std::string &code)
 void MainWindow::onDisableEmailAuthentication()
 {
     messenger_->disableEmailAuth();
+}
+
+void MainWindow::sendFile(const std::string& filePath, unsigned long long receiverId)
+{
+    messenger_->sendFile(filePath, receiverId);
 }
 

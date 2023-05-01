@@ -41,7 +41,11 @@ private:
     void createAndPushMessageWidget(const QString &msg, bool isAuthor);
 signals:
     void sendMessage(const MessageInfo& messageInfo);
+    void sendFile(const std::string& filePath, unsigned long long receiverId);
 public slots:
     void onContextMenuMessageRemovalSignal(const MessageInfo & msgInfo);
+protected:
+    void dragEnterEvent(QDragEnterEvent *event) override;
+    void dropEvent(QDropEvent *event) override;
 };
 

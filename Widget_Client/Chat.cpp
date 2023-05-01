@@ -1,4 +1,6 @@
 ﻿#include "Chat.h"
+#include "FileDropDialog.h"
+#include "qevent.h"
 #include "ui_Chat.h"
 #include "MessagesDateWidget.h"
 #include <sstream>
@@ -8,6 +10,9 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <QMimeData>
+#include <QFileInfo>
+#include <QUrl>
 
 Chat::Chat(unsigned long long friendId, const QString& friendName, Mediator *mediator, QWidget *parent) :
     QWidget(parent),
@@ -16,6 +21,7 @@ Chat::Chat(unsigned long long friendId, const QString& friendName, Mediator *med
     friendName_{friendName},
     mediator_{mediator}
 {
+    setAcceptDrops(true);
     ui->setupUi(this);
     ui->receiverName->setText(friendName_);
     ui->messageList->setStyleSheet("QListWidget::item:hover {background: transparent;} "
@@ -247,4 +253,40 @@ void Chat::onContextMenuMessageRemovalSignal(const MessageInfo & msgInfo)
         // Remove the entry from the map
         messagesMap.erase(it);
     }
+}
+
+void Chat::dragEnterEvent(QDragEnterEvent *event) {
+    if (event->mimeData()->hasUrls()) {
+        event->acceptProposedAction();
+    }
+}
+
+void Chat::dropEvent(QDropEvent *event) {
+    QList<QUrl> urls = event->mimeData()->urls();
+    if (urls.isEmpty()) {
+        return;
+    }
+
+    QString filePath = urls.first().toLocalFile();
+    if (filePath.isEmpty()) {
+        return;
+    }
+
+    FileDropDialog fileDropDialog(filePath, this);
+    if (fileDropDialog.exec() == QDialog::Accepted) {
+        // Handle the accepted file drop
+        emit sendFile(filePath.toStdString(), friendId_);
+        qDebug() << "File accepted:" << filePath;
+    } else {
+        qDebug() << "File rejected:" << filePath;
+    }
+//    QList<QUrl> urls = event->mimeData()->urls();
+//    for (const QUrl &url : urls) {
+//        QString localFile = url.toLocalFile();
+//        QFileInfo fileInfo(localFile);
+//        if (fileInfo.isFile()) {
+//            // Process the file (e.g., send the file, display a preview, etc.)
+//            qDebug() << "Dropped file:" << localFile;
+//        }
+//    }
 }

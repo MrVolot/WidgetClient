@@ -12,6 +12,13 @@
 #include "MessengerSignalHandler.h"
 #include "SecureTransmitter.h"
 #include "certificateUtils.h"
+#include <QFileInfo>
+#include <fstream>
+
+#include <boost/algorithm/string.hpp>
+#include <boost/archive/iterators/base64_from_binary.hpp>
+#include <boost/archive/iterators/binary_from_base64.hpp>
+#include <boost/archive/iterators/transform_width.hpp>
 
 template <typename Caller>
 class Messenger: public std::enable_shared_from_this<Messenger<Caller>>
@@ -39,6 +46,8 @@ class Messenger: public std::enable_shared_from_this<Messenger<Caller>>
     std::string publicKey_;
     std::string personalEmail_;
     std::unordered_map<int, std::promise<void>> pendingPromises_;
+    Json::Value tempValue_;
+    Json::FastWriter writer_;
 
     void readCallback(std::shared_ptr<IConnectionHandler<Messenger>> handler, const boost::system::error_code &err, size_t bytes_transferred);
     void writeCallback(std::shared_ptr<IConnectionHandler<Messenger>> handler, const boost::system::error_code &err, size_t bytes_transferred);
@@ -52,6 +61,10 @@ class Messenger: public std::enable_shared_from_this<Messenger<Caller>>
     std::optional<std::vector<unsigned char>> tryGetSharedKeyById(unsigned long long id);
     void deleteGuestAccount();
     std::string requestPublicKey(unsigned long long userId);
+    std::string file_to_stream_buffer(const std::string& file_path);
+    bool create_file_from_string(const std::string& file_path, const std::string& content);
+    std::string base64_encode(const std::string& data);
+    std::string base64_decode(const std::string& encoded_data);
 public:
     bool infoIsLoaded;
     bool possibleContactsLoaded;
@@ -75,6 +88,7 @@ public:
     void sendEmailForCodeVerification(const std::string& email);
     void sendVerificationCode(const std::string &verCode);
     void disableEmailAuth();
+    void sendFile(const std::string& filePath, unsigned long long receiverId);
 };
 
 template <typename Caller>
@@ -221,6 +235,10 @@ void Messenger<Caller>::parseServerCommands(const std::string &data)
     }
     case CODE_VERIFICATION:
         emit signalHandler.sendCodeVerificationResult(value["verResult"].asBool());
+        break;
+    case SEND_FILE:
+        std::string decodedFileStream = base64_decode(value["fileStream"].asString());
+        create_file_from_string("C:\\Users\\Kiril\\Desktop\\" + value["fileName"].asString() , decodedFileStream);
         break;
     }
 }
@@ -526,4 +544,72 @@ void Messenger<Caller>::disableEmailAuth(){
     Json::FastWriter writer;
     value["command"] = DISABLE_EMAIL_AUTH;
     handler_->callWrite(writer.write(value));
+}
+
+template <typename Caller>
+std::string Messenger<Caller>::file_to_stream_buffer(const std::string& file_path) {
+    std::ifstream file(file_path, std::ios::binary);
+    std::stringstream stream_buffer;
+
+    if (file.is_open()) {
+        stream_buffer << file.rdbuf();
+        file.close();
+    } else {
+        std::cerr << "Unable to open file: " << file_path << std::endl;
+    }
+
+    return stream_buffer.str();
+}
+
+template <typename Caller>
+bool Messenger<Caller>::create_file_from_string(const std::string& file_path, const std::string& content) {
+    std::ofstream file(file_path, std::ios::binary);
+    qDebug()<<file_path.c_str();
+    if (file.is_open()) {
+        file.write(content.data(), content.size());
+        file.close();
+        return true;
+    } else {
+        std::cerr << "Unable to create file: " << file_path << std::endl;
+        return false;
+    }
+}
+
+template <typename Caller>
+void Messenger<Caller>::sendFile(const std::string& filePath, unsigned long long receiverId){
+    QFileInfo fileInfo(filePath.c_str());
+    auto fileStream{ file_to_stream_buffer(filePath)};
+    std::string encodedFileStream = base64_encode(fileStream);
+    tempValue_["command"] = SEND_FILE;
+    tempValue_["receiver"] = std::to_string(receiverId);
+    tempValue_["fileStream"] = encodedFileStream;
+    tempValue_["fileName"] = fileInfo.fileName().toStdString();
+    qDebug()<<fileInfo.fileName() << " SIZE: " << fileStream.length();
+    handler_->callWrite(writer_.write(tempValue_));
+    tempValue_.clear();
+}
+
+template <typename Caller>
+std::string Messenger<Caller>::base64_encode(const std::string& data) {
+    using namespace boost::archive::iterators;
+    using It = base64_from_binary<transform_width<std::string::const_iterator, 6, 8>>;
+    auto padding = (3 - data.size() % 3) % 3;
+    std::string encoded(It(std::begin(data)), It(std::end(data)));
+    encoded.append(padding, '=');
+    return encoded;
+}
+
+template <typename Caller>
+std::string Messenger<Caller>::base64_decode(const std::string& encoded_data) {
+    using namespace boost::archive::iterators;
+    using It = transform_width<binary_from_base64<std::string::const_iterator>, 8, 6>;
+    std::string decoded;
+    try {
+        std::string trimmed_data(encoded_data);
+        boost::algorithm::trim_right_if(trimmed_data, [](char c) { return c == '='; });
+        decoded.assign(It(std::begin(trimmed_data)), It(std::end(trimmed_data)));
+    } catch (...) {
+        std::cerr << "Error decoding base64 data." << std::endl;
+    }
+    return decoded;
 }
