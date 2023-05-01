@@ -280,13 +280,4 @@ void Chat::dropEvent(QDropEvent *event) {
     } else {
         qDebug() << "File rejected:" << filePath;
     }
-//    QList<QUrl> urls = event->mimeData()->urls();
-//    for (const QUrl &url : urls) {
-//        QString localFile = url.toLocalFile();
-//        QFileInfo fileInfo(localFile);
-//        if (fileInfo.isFile()) {
-//            // Process the file (e.g., send the file, display a preview, etc.)
-//            qDebug() << "Dropped file:" << localFile;
-//        }
-//    }
 }
