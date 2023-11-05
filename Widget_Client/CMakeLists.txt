@@ -77,7 +77,7 @@ set(PROJECT_SOURCES
 )
 
 set(BOOST_LIBRARYDIR D:/Boost/boost-build/lib)
-set(BOOST_ROOT D:/Boost/boost_1_78_0)
+set(BOOST_ROOT D:/Boost/boost-build)
 
 set (Boost_USE_STATIC_LIBS ON)
 set (Boost_USE_MULTITHREADED ON)
@@ -123,7 +123,7 @@ include_directories(${OPENSSL_INCLUDE_DIR})
 
 
 # Add this line to include the cert_utils library
-set(certificateUtils D:/repos/Final_Messenger/MessengerMain/ThirdParty/certificateUtils)
+set(certificateUtils D:/Repositories/Final_Messenger/MessengerMain/ThirdParty/certificateUtils)
 add_subdirectory(${certificateUtils} ${CMAKE_BINARY_DIR}/certificateUtils)
 
 # Link the cert_utils library to your server/client executable

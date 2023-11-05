@@ -2,6 +2,8 @@
 #include "qevent.h"
 #include "ui_MessageWidget.h"
 
+#include <QLineEdit>
+
 MessageWidget::MessageWidget(const MessageInfo& msgInfo, Mediator *mediator, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MessageWidget),
@@ -45,6 +47,13 @@ void MessageWidget::setText(const QString& text, const QString& time,bool isAuth
 const MessageInfo& MessageWidget::getMessageInfo() const
 {
     return msgInfo_;
+}
+
+void MessageWidget::editMessage(const QString &newText)
+{
+    msgInfo_.text = newText;
+    contextMenu->setText(newText);
+    setText(msgInfo_.text, msgInfo_.sentTime, msgInfo_.isAuthor);
 }
 
 MessageWidget::~MessageWidget()

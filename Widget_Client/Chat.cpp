@@ -19,16 +19,19 @@ Chat::Chat(unsigned long long friendId, const QString& friendName, Mediator *med
     ui(new Ui::Chat),
     friendId_{friendId},
     friendName_{friendName},
-    mediator_{mediator}
+    mediator_{mediator},
+    currentlyEditingMessage_{"", 0, 0, "", "", true}
 {
     setAcceptDrops(true);
     ui->setupUi(this);
     ui->receiverName->setText(friendName_);
+    ui->msgFiled->setClearButtonEnabled(true);
     ui->messageList->setStyleSheet("QListWidget::item:hover {background: transparent;} "
                                    "QListWidget::item:selected:!active {background: transparent;} ");
     ui->messageList->setFocusPolicy(Qt::NoFocus);
 
     connect(mediator_, &Mediator::contextMenuMessageRemovalSignal, this, &Chat::onContextMenuMessageRemovalSignal);
+    connect(mediator_, &Mediator::editMessageSignal, this, &Chat::onEditMessageRequested);
 }
 
 Chat::~Chat()
@@ -63,31 +66,39 @@ void Chat::loadChatHistory(std::vector<std::map<std::string, QString> > &chatHis
 
 void Chat::on_sendMsgBtn_clicked()
 {
-    auto currentDateTime{QDateTime::currentDateTime()};
-    if(lastMessageDateTime.date() != currentDateTime.date()){
-        MessagesDateWidget* dateWidget{new MessagesDateWidget{currentDateTime}};
-        auto item2 {new QListWidgetItem{}};
-        item2->setSizeHint(dateWidget->sizeHint());
-        ui->messageList->addItem(item2);
-        ui->messageList->setItemWidget(item2, dateWidget);
-        lastMessageDateTime = currentDateTime;
-    }
-    if(!ui->msgFiled->text().isEmpty()){
-        QString meesageToSend{ui->msgFiled->text()};
-        processMessage(meesageToSend, true);
-        for(auto& n : vectorOfMessages){
-            auto item {new QListWidgetItem{}};
-            item->setSizeHint(n->sizeHint());
-            ui->messageList->addItem(item);
-            ui->messageList->setItemWidget(item, n);
-            int rowIndex = ui->messageList->row(item); // Get the row index
-            messagesMap[n->getMessageInfo().messageGuid.toStdString()] = rowIndex;
-            emit sendMessage(n->getMessageInfo());
+    if(ui->sendMsgBtn->text() == "Send"){
+        auto currentDateTime{QDateTime::currentDateTime()};
+        if(lastMessageDateTime.date() != currentDateTime.date()){
+            MessagesDateWidget* dateWidget{new MessagesDateWidget{currentDateTime}};
+            auto item2 {new QListWidgetItem{}};
+            item2->setSizeHint(dateWidget->sizeHint());
+            ui->messageList->addItem(item2);
+            ui->messageList->setItemWidget(item2, dateWidget);
+            lastMessageDateTime = currentDateTime;
         }
-        ui->messageList->scrollToBottom();
-        ui->msgFiled->clear();
-        vectorOfMessages.clear();
+        if(!ui->msgFiled->text().isEmpty()){
+            QString meesageToSend{ui->msgFiled->text()};
+            processMessage(meesageToSend, true);
+            for(auto& n : vectorOfMessages){
+                auto item {new QListWidgetItem{}};
+                item->setSizeHint(n->sizeHint());
+                ui->messageList->addItem(item);
+                ui->messageList->setItemWidget(item, n);
+                int rowIndex = ui->messageList->row(item); // Get the row index
+                messagesMap[n->getMessageInfo().messageGuid.toStdString()] = rowIndex;
+                emit sendMessage(n->getMessageInfo());
+            }
+            ui->messageList->scrollToBottom();
+            vectorOfMessages.clear();
+        }
+    }else{
+        auto newText{ui->msgFiled->text()};
+        currentlyEditingMessage_.text = newText;
+        emit editMessageInDb(currentlyEditingMessage_);
+        editMessageIfExists(currentlyEditingMessage_.messageGuid, newText);
+        ui->sendMsgBtn->setText("Send");
     }
+    ui->msgFiled->clear();
 }
 
 void Chat::receiveMessage(const MessageInfo &msgInfo, const QDateTime& sentTime, bool createDateWidget)
@@ -236,6 +247,19 @@ void Chat::createAndPushMessageWidget(const QString &msg, bool isAuthor)
     vectorOfMessages.push_back(tmpWidget);
 }
 
+void Chat::editMessageIfExists(const QString& messageGuid, const QString& newText)
+{
+    auto it = messagesMap.find(messageGuid.toStdString());
+    if (it != messagesMap.end()) {
+        int rowIndex = it->second;
+        QListWidgetItem* item = ui->messageList->item(rowIndex);
+        if (item) {
+            MessageWidget* widgetPtr = qobject_cast<MessageWidget*>(ui->messageList->itemWidget(item));
+            widgetPtr->editMessage(newText);
+        }
+    }
+}
+
 void Chat::onContextMenuMessageRemovalSignal(const MessageInfo & msgInfo)
 {
     auto it = messagesMap.find(msgInfo.messageGuid.toStdString());
@@ -281,4 +305,10 @@ void Chat::dropEvent(QDropEvent *event) {
     } else {
         qDebug() << "File rejected:" << filePath;
     }
+}
+
+void Chat::onEditMessageRequested(const MessageInfo & msgInfo) {
+    ui->msgFiled->setText(msgInfo.text);
+    ui->sendMsgBtn->setText(" OK ");
+    currentlyEditingMessage_ = msgInfo; // You need a member variable to track this
 }

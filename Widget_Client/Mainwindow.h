@@ -45,11 +45,13 @@ private slots:
     void onContextMenuSlot(const MessageInfo &msgInfo);
     void onContextMenuMessageRemovalFromDbSlot(const MessageInfo& msgInfo);
     void onDeleteMessageRequest(const QString& chatId, const QString& messageGuid);
+    void onEditMessageRequest(const QString& chatId, const QString& messageGuid, const QString& newText);
     void on_settingsButton_clicked();
     void onSendEmailForVerificationSignal(const std::string& email);
     void onSendVerificationCodeSignal(const std::string& code);
     void onDisableEmailAuthentication();
     void sendFile(const std::string& filePath, unsigned long long receiverId);
+    void onEditMessageInDb(const MessageInfo &msgInfo);
 signals:
     void createMessageInstanceSignal(const MessageInfo &msgInfo);
 };

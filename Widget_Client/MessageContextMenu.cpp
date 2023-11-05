@@ -12,6 +12,7 @@ MessageContextMenu::MessageContextMenu(const MessageInfo& msgInfo, Mediator *med
 
     connect(this, &MessageContextMenu::launchReminder, mediator_, &Mediator::onContextMenuSignal);
     connect(this, &MessageContextMenu::destroyMessageWidget, mediator_, &Mediator::onContextMenuMessageRemovalSignal);
+    connect(this, &MessageContextMenu::editRequested, mediator_, &Mediator::onEditMessage);
 }
 
 MessageContextMenu::~MessageContextMenu()
@@ -32,6 +33,11 @@ void MessageContextMenu::popup(const QPoint& pos)
     show();
 }
 
+void MessageContextMenu::setText(const QString &newText)
+{
+    messageInfo.text = newText;
+}
+
 void MessageContextMenu::on_notificationReminderButton_clicked()
 {
     emit launchReminder(messageInfo);
@@ -43,5 +49,12 @@ void MessageContextMenu::on_deleteButton_clicked()
 {
     //destroy MessageWidget object
     emit destroyMessageWidget(messageInfo);
+    //hide();?
+}
+
+void MessageContextMenu::on_editButton_clicked()
+{
+    emit editRequested(messageInfo);
+    hide();
 }
 

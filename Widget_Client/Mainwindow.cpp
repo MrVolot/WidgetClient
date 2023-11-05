@@ -26,6 +26,7 @@ MainWindow::MainWindow(boost::asio::io_service& service, const std::string& hash
     //Setting up messenger_ and retrieving contacts
     messenger_.reset(new Messenger<MainWindow>{service, hash, this, isGuestAccount});
     connect(&messenger_->signalHandler, &MessengerSignalHandler::deleteMessageRequest, this, &MainWindow::onDeleteMessageRequest);
+    connect(&messenger_->signalHandler, &MessengerSignalHandler::editMessageRequest, this, &MainWindow::onEditMessageRequest);
     messenger_->initializeConnection();
     messenger_->setReceiveMessageCallback(&MainWindow::sendMessageToChat);
     while(messenger_->infoIsLoaded);
@@ -37,7 +38,6 @@ MainWindow::MainWindow(boost::asio::io_service& service, const std::string& hash
     connect(mediator_, &Mediator::contextMenuMessageRemovalFromDbSignal, this, &MainWindow::onContextMenuMessageRemovalFromDbSlot);
 
     settingsDialog_.reset(new SettingsDialog(this));
-
     connect(&*settingsDialog_, &SettingsDialog::sendEmailForVerificationSignal, this, &MainWindow::onSendEmailForVerificationSignal);
     connect(&*settingsDialog_, &SettingsDialog::sendVerificationCodeSignal, this, &MainWindow::onSendVerificationCodeSignal);
     connect(&*settingsDialog_, &SettingsDialog::disableEmailAuthenticationSignal, this, &MainWindow::onDisableEmailAuthentication);
@@ -73,6 +73,7 @@ void MainWindow::loadChatInfo(Contact& contact)
     chatsMap[id].reset(new Chat{id, name, mediator_});
     connect(&(*(chatsMap[id])), &Chat::sendMessage, this, &MainWindow::sendMessage);
     connect(&(*(chatsMap[id])), &Chat::sendFile, this, &MainWindow::sendFile);
+    connect(&(*(chatsMap[id])), &Chat::editMessageInDb, this, &MainWindow::onEditMessageInDb);
     if(currentFriendId!=0){
         chatsMap[currentFriendId]->setVisible(false);
         ui->rightLayout->replaceWidget(chatsMap[currentFriendId].get(), chatsMap[id].get());
@@ -96,6 +97,7 @@ void MainWindow::sendMessage(const MessageInfo &msgInfo)
     auto selectedItem {contactsListWidget->getContactsWidget()->currentItem()};
     auto contact{dynamic_cast<ContactsWidget*>(contactsListWidget->getContactsWidget()->itemWidget(selectedItem))};
     contact->setLastMessage(true, msgInfo.text);
+    contact->update();
     messenger_->sendMessage(msgInfo);
 }
 
@@ -173,6 +175,11 @@ void MainWindow::onDeleteMessageRequest(const QString &chatId, const QString &me
     chatsMap[chatId.toULongLong()]->onContextMenuMessageRemovalSignal({messageGuid, 0,0,"", "", true});
 }
 
+void MainWindow::onEditMessageRequest(const QString &chatId, const QString &messageGuid, const QString &newText)
+{
+    chatsMap[chatId.toULongLong()]->editMessageIfExists(messageGuid, newText);
+}
+
 void MainWindow::on_settingsButton_clicked()
 {
     //open up the settings widget
@@ -198,5 +205,10 @@ void MainWindow::onDisableEmailAuthentication()
 void MainWindow::sendFile(const std::string& filePath, unsigned long long receiverId)
 {
     messenger_->sendFile(filePath, receiverId);
+}
+
+void MainWindow::onEditMessageInDb(const MessageInfo &msgInfo)
+{
+    messenger_->editMessageInDb(msgInfo);
 }
 

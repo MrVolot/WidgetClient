@@ -18,7 +18,7 @@ public:
     ~Chat();
     void loadChatHistory(std::vector<std::map<std::string, QString>>& chatHistory);
     QString getCurrentTime();
-
+    void editMessageIfExists(const QString& messageGuid, const QString& newText);
 private slots:
     void on_sendMsgBtn_clicked();
     void on_msgFiled_returnPressed();
@@ -31,6 +31,7 @@ private:
     QDateTime lastMessageDateTime;
     Mediator *mediator_;
     std::unordered_map<std::string, int> messagesMap;
+    MessageInfo currentlyEditingMessage_;
 
     void processMessage(const QString &msg, bool isAuthor);
     int getClosestPunctuationMarkPosition(const QString &msg, bool isLeftToRight);
@@ -42,8 +43,10 @@ private:
 signals:
     void sendMessage(const MessageInfo& messageInfo);
     void sendFile(const std::string& filePath, unsigned long long receiverId);
+    void editMessageInDb(const MessageInfo& messageInfo);
 public slots:
     void onContextMenuMessageRemovalSignal(const MessageInfo & msgInfo);
+    void onEditMessageRequested(const MessageInfo & msgInfo);
 protected:
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dropEvent(QDropEvent *event) override;

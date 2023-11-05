@@ -17,3 +17,8 @@ void Mediator::onContextMenuMessageRemovalSignal(const MessageInfo & msgInfo)
     emit contextMenuMessageRemovalSignal(msgInfoCopy);
     emit contextMenuMessageRemovalFromDbSignal(msgInfoCopy);
 }
+
+void Mediator::onEditMessage(const MessageInfo & msgInfo)
+{
+    emit editMessageSignal(msgInfo);
+}

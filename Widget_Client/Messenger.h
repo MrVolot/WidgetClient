@@ -89,6 +89,7 @@ public:
     void sendVerificationCode(const std::string &verCode);
     void disableEmailAuth();
     void sendFile(const std::string& filePath, unsigned long long receiverId);
+    void editMessageInDb(const MessageInfo & msgInfo);
 };
 
 template <typename Caller>
@@ -231,6 +232,22 @@ void Messenger<Caller>::parseServerCommands(const std::string &data)
             chatId = value["sender"].asCString();
         }
         emit signalHandler.deleteMessageRequest(chatId, value["messageGuid"].asCString());
+        break;
+    }
+    case EDIT_MESSAGE:{
+        QString chatId{value["receiverId"].asCString()};
+        if(chatId.toULongLong() == id_){
+            chatId = value["senderId"].asCString();
+        }
+        auto possibleSharedKey {tryGetSharedKeyById(chatId.toULongLong())};
+        std::vector<unsigned char> sharedKey{};
+        if(possibleSharedKey.has_value()){
+            sharedKey = possibleSharedKey.value();
+        }else{
+            std::string publicKey = requestPublicKey(chatId.toULongLong());
+            sharedKey = secureTransmitter_->generateSharedKey(publicKey);
+        }
+        emit signalHandler.editMessageRequest(chatId, value["messageGuid"].asCString(), QString::fromStdString(secureTransmitter_->decryptMessage(value["newText"].asString(), sharedKey)));
         break;
     }
     case CODE_VERIFICATION:
@@ -612,4 +629,26 @@ std::string Messenger<Caller>::base64_decode(const std::string& encoded_data) {
         std::cerr << "Error decoding base64 data." << std::endl;
     }
     return decoded;
+}
+
+template <typename Caller>
+void Messenger<Caller>::editMessageInDb(const MessageInfo & msgInfo){
+    Json::Value value;
+    auto sharedKey {tryGetSharedKeyById(msgInfo.friendId)};
+    std::string encryptedMsg;
+    if(sharedKey.has_value()){
+        encryptedMsg = secureTransmitter_->encryptMessage(msgInfo.text.toStdString(), sharedKey.value());
+
+    }else{
+        std::string publicKey = requestPublicKey(msgInfo.friendId);
+        sharedKey = secureTransmitter_->generateSharedKey(publicKey);
+        friendList_.push_back({"", msgInfo.friendId, {msgInfo.friendId, ""}, sharedKey.value()});
+        encryptedMsg = secureTransmitter_->encryptMessage(msgInfo.text.toStdString(), sharedKey.value());
+    }
+    value["command"] = EDIT_MESSAGE;
+    value["messageGuid"] = msgInfo.messageGuid.toStdString();
+    value["receiverId"] = msgInfo.receiverId;
+    value["senderId"] = msgInfo.senderId;
+    value["newText"] = encryptedMsg;
+    handler_->callWrite(writer_.write(value));
 }

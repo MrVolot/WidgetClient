@@ -16,6 +16,7 @@ public:
     explicit MessageWidget(const MessageInfo& msgInfo, Mediator *mediator, QWidget *parent = nullptr);
     void setText(const QString& text, const QString& time,bool isAuthor);
     const MessageInfo& getMessageInfo() const;
+    void editMessage(const QString& newText);
     ~MessageWidget();
 private:
     Ui::MessageWidget *ui;
