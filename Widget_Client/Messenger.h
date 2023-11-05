@@ -59,7 +59,6 @@ class Messenger: public std::enable_shared_from_this<Messenger<Caller>>
     void parsePossibleContacts(const std::string& jsonData);
     std::optional<Contact> getContactById(long long id);
     std::optional<std::vector<unsigned char>> tryGetSharedKeyById(unsigned long long id);
-    void deleteGuestAccount();
     std::string requestPublicKey(unsigned long long userId);
     std::string file_to_stream_buffer(const std::string& file_path);
     bool create_file_from_string(const std::string& file_path, const std::string& content);
@@ -90,6 +89,7 @@ public:
     void disableEmailAuth();
     void sendFile(const std::string& filePath, unsigned long long receiverId);
     void editMessageInDb(const MessageInfo & msgInfo);
+    void deleteAccount();
 };
 
 template <typename Caller>
@@ -151,7 +151,7 @@ template <typename Caller>
 Messenger<Caller>::~Messenger()
 {
     if(isGuestAccount_){
-        deleteGuestAccount();
+        deleteAccount();
     }
     handler_->getSocket().close();
 }
@@ -493,11 +493,12 @@ void Messenger<Caller>::removeMessageFromDb(const MessageInfo & msgInfo)
 }
 
 template <typename Caller>
-void Messenger<Caller>::deleteGuestAccount(){
+void Messenger<Caller>::deleteAccount(){
     Json::Value value;
     Json::FastWriter writer;
     value["command"] = DELETE_ACCOUNT;
     value["id"] = std::to_string(id_);
+    isGuestAccount_ = false; // This is to not to call deleteAccount again in destructor if it is not a guest account
     handler_->callWrite(writer.write(value));
 }
 template <typename Caller>

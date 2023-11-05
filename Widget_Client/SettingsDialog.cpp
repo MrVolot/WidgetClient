@@ -1,5 +1,7 @@
 #include "SettingsDialog.h"
 #include "ui_SettingsDialog.h"
+#include <QPushButton>
+#include <QMessageBox>
 
 
 SettingsDialog::SettingsDialog(QWidget *parent) :
@@ -23,6 +25,23 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     authLabel = new QLabel("Authentication", this);
     toggleButton = new AnimatedToggleButton(this);
     profilePlaceholder = new QLabel("Profile information here", this);
+    deleteAccountButton = new QPushButton("Delete Account", this);
+    deleteAccountButton->setStyleSheet(R"(
+        QPushButton {
+            background-color: #D32F2F;
+            color: white;
+            font-weight: bold;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        QPushButton:hover {
+            background-color: #E57373;
+        }
+        QPushButton:pressed {
+            background-color: #C62828;
+        }
+    )");
 
     // Widgets setup
     hLayout->addWidget(authLabel);
@@ -46,12 +65,14 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 
     // Add the stacked widget to the main layout
     mainLayout->addWidget(stackedWidget);
+    mainLayout->addWidget(deleteAccountButton);
 
     // Layouts setup
     ui->verticalLayout_2->addLayout(mainLayout);
 
     // Signal/slots setup
     connect(toggleButton, &QAbstractButton::toggled, this, &SettingsDialog::handleToggleButton);
+    connect(deleteAccountButton, &QPushButton::clicked, this, &SettingsDialog::onDeleteAccountClicked);
 }
 
 SettingsDialog::~SettingsDialog()
@@ -115,5 +136,48 @@ void SettingsDialog::retrieveCodeVerificationResult(bool result)
     }else{
         codeVerificationWidget_->setLabelText("Incorrect code. Try again!");
         codeVerificationWidget_->cleanInputField();
+    }
+}
+
+void SettingsDialog::onDeleteAccountClicked() {
+    QMessageBox messageBox;
+    messageBox.setWindowTitle("Confirm Deletion");
+    messageBox.setText("Are you sure you want to delete your account?");
+    messageBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    messageBox.setDefaultButton(QMessageBox::No);
+    messageBox.setIcon(QMessageBox::Warning);
+
+    // Apply a stylesheet to QMessageBox for a dark grey theme
+    messageBox.setStyleSheet(R"(
+        QMessageBox {
+            background-color: #333333; /* Dark grey background */
+            color: #DDDDDD; /* Light grey text for readability */
+        }
+        QLabel {
+            color: #DDDDDD;
+        }
+        QPushButton {
+            background-color: #555555; /* Medium grey for buttons */
+            color: #FFFFFF;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 20px;
+            margin: 4px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        QPushButton:hover {
+            background-color: #6E6E6E; /* Lighter grey for hover state */
+        }
+        QPushButton:pressed {
+            background-color: #4D4D4D; /* Slightly darker grey for pressed state */
+        }
+    )");
+
+
+
+    int result = messageBox.exec();
+    if (result == QMessageBox::Yes) {
+        emit deleteAccountSignal();
     }
 }

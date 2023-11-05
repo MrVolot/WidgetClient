@@ -41,6 +41,7 @@ MainWindow::MainWindow(boost::asio::io_service& service, const std::string& hash
     connect(&*settingsDialog_, &SettingsDialog::sendEmailForVerificationSignal, this, &MainWindow::onSendEmailForVerificationSignal);
     connect(&*settingsDialog_, &SettingsDialog::sendVerificationCodeSignal, this, &MainWindow::onSendVerificationCodeSignal);
     connect(&*settingsDialog_, &SettingsDialog::disableEmailAuthenticationSignal, this, &MainWindow::onDisableEmailAuthentication);
+    connect(&*settingsDialog_, &SettingsDialog::deleteAccountSignal, this, &MainWindow::onDeleteAccount);
     connect(&messenger_->signalHandler, &MessengerSignalHandler::sendCodeVerificationResult, &*settingsDialog_, &SettingsDialog::retrieveCodeVerificationResult);
 }
 
@@ -210,5 +211,11 @@ void MainWindow::sendFile(const std::string& filePath, unsigned long long receiv
 void MainWindow::onEditMessageInDb(const MessageInfo &msgInfo)
 {
     messenger_->editMessageInDb(msgInfo);
+}
+
+void MainWindow::onDeleteAccount()
+{
+    messenger_->deleteAccount();
+    QCoreApplication::quit();
 }
 

@@ -52,6 +52,7 @@ private slots:
     void onDisableEmailAuthentication();
     void sendFile(const std::string& filePath, unsigned long long receiverId);
     void onEditMessageInDb(const MessageInfo &msgInfo);
+    void onDeleteAccount();
 signals:
     void createMessageInstanceSignal(const MessageInfo &msgInfo);
 };

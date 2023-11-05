@@ -25,6 +25,7 @@ private slots:
     void handleToggleButton(bool checked);
     void onCodeVerificationBackButtonSignal();
     void onInputSendSignal(const std::string& input);
+    void onDeleteAccountClicked();
 private:
     Ui::SettingsDialog *ui;
     QStackedWidget *stackedWidget;
@@ -38,10 +39,12 @@ private:
     std::unique_ptr<CodeVerificationWidget> codeVerificationWidget_;
     bool emailVarified_;
     bool isCodeVerificationStage_;
+    QPushButton* deleteAccountButton;
 signals:
     void sendEmailForVerificationSignal(const std::string& email);
     void sendVerificationCodeSignal(const std::string& code);
     void disableEmailAuthenticationSignal();
+    void deleteAccountSignal();
 public slots:
     void retrieveCodeVerificationResult(bool result);
 };
