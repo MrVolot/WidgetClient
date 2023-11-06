@@ -90,6 +90,7 @@ public:
     void sendFile(const std::string& filePath, unsigned long long receiverId);
     void editMessageInDb(const MessageInfo & msgInfo);
     void deleteAccount();
+    void changePassword(const std::string& newPassword);
 };
 
 template <typename Caller>
@@ -651,5 +652,13 @@ void Messenger<Caller>::editMessageInDb(const MessageInfo & msgInfo){
     value["receiverId"] = msgInfo.receiverId;
     value["senderId"] = msgInfo.senderId;
     value["newText"] = encryptedMsg;
+    handler_->callWrite(writer_.write(value));
+}
+
+template <typename Caller>
+void Messenger<Caller>::changePassword(const std::string& newPassword){
+    Json::Value value;
+    value["command"] = CHANGE_PASSWORD;
+    value["newPassword"] = newPassword;
     handler_->callWrite(writer_.write(value));
 }

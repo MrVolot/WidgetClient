@@ -53,6 +53,7 @@ private slots:
     void sendFile(const std::string& filePath, unsigned long long receiverId);
     void onEditMessageInDb(const MessageInfo &msgInfo);
     void onDeleteAccount();
+    void onChangePassword(const std::string& newPassword);
 signals:
     void createMessageInstanceSignal(const MessageInfo &msgInfo);
 };

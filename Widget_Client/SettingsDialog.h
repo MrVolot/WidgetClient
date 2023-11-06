@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QDialog>
+#include <QLineEdit>
 #include <QStackedWidget>
 #include "AnimatedToggleButton.h"
 #include "CodeVerificationWidget.h"
@@ -16,7 +17,7 @@ class SettingsDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit SettingsDialog(QWidget *parent = nullptr);
+    explicit SettingsDialog(QWidget *parent = nullptr, bool isGuestAccount = false);
     ~SettingsDialog();
 
     void setCurrentEmail(const std::string& email);
@@ -26,8 +27,10 @@ private slots:
     void onCodeVerificationBackButtonSignal();
     void onInputSendSignal(const std::string& input);
     void onDeleteAccountClicked();
+    void onChangePasswordSubmitted();
 private:
     Ui::SettingsDialog *ui;
+    bool isGuestAccount_;
     QStackedWidget *stackedWidget;
     QVBoxLayout *mainLayout;
     QHBoxLayout *hLayout;
@@ -39,12 +42,22 @@ private:
     std::unique_ptr<CodeVerificationWidget> codeVerificationWidget_;
     bool emailVarified_;
     bool isCodeVerificationStage_;
+    QWidget *firstPageWidget;
+    QPushButton *changePasswordButton;
     QPushButton* deleteAccountButton;
+    QLineEdit *newPasswordEdit;
+    QLineEdit *confirmPasswordEdit;
+    QPushButton *submitPasswordButton;
+    QPushButton *cancelPasswordButton;
+    QWidget *passwordChangeWidget;
+
+    void showTemporaryPopup(const QString &message);
 signals:
     void sendEmailForVerificationSignal(const std::string& email);
     void sendVerificationCodeSignal(const std::string& code);
     void disableEmailAuthenticationSignal();
     void deleteAccountSignal();
+    void changePassword(const std::string& newPassword);
 public slots:
     void retrieveCodeVerificationResult(bool result);
 };

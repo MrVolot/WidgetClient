@@ -37,11 +37,12 @@ MainWindow::MainWindow(boost::asio::io_service& service, const std::string& hash
     connect(mediator_, &Mediator::contextMenuSignal, this, &MainWindow::onContextMenuSlot);
     connect(mediator_, &Mediator::contextMenuMessageRemovalFromDbSignal, this, &MainWindow::onContextMenuMessageRemovalFromDbSlot);
 
-    settingsDialog_.reset(new SettingsDialog(this));
+    settingsDialog_.reset(new SettingsDialog(this, isGuestAccount));
     connect(&*settingsDialog_, &SettingsDialog::sendEmailForVerificationSignal, this, &MainWindow::onSendEmailForVerificationSignal);
     connect(&*settingsDialog_, &SettingsDialog::sendVerificationCodeSignal, this, &MainWindow::onSendVerificationCodeSignal);
     connect(&*settingsDialog_, &SettingsDialog::disableEmailAuthenticationSignal, this, &MainWindow::onDisableEmailAuthentication);
     connect(&*settingsDialog_, &SettingsDialog::deleteAccountSignal, this, &MainWindow::onDeleteAccount);
+    connect(&*settingsDialog_, &SettingsDialog::changePassword, this, &MainWindow::onChangePassword);
     connect(&messenger_->signalHandler, &MessengerSignalHandler::sendCodeVerificationResult, &*settingsDialog_, &SettingsDialog::retrieveCodeVerificationResult);
 }
 
@@ -217,5 +218,10 @@ void MainWindow::onDeleteAccount()
 {
     messenger_->deleteAccount();
     QCoreApplication::quit();
+}
+
+void MainWindow::onChangePassword(const std::string &newPassword)
+{
+    messenger_->changePassword(newPassword);
 }
 
