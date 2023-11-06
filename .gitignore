@@ -9,3 +9,4 @@ Widget_Client/config.txt
 Widget_Client/ca.crt
 CMakeLists.txt.user
 build-Widget_Client-Desktop*
+Assets/

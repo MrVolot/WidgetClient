@@ -5,6 +5,7 @@
 #include <QPainter>
 #include <QScreen>
 #include <QMouseEvent>
+#include <QAudioOutput>
 
 NotificationWidget::NotificationWidget(const QString& text, unsigned long long senderId, const QString& senderName, QWidget *parent) :
     QWidget(parent),
@@ -32,6 +33,11 @@ NotificationWidget::NotificationWidget(const QString& text, unsigned long long s
                        "margin-right: 10px; }"};
     ui->senderLabel->setStyleSheet(styleSheet);
     ui->notificationMessage->setStyleSheet(styleSheet);
+
+    notificationSoundPlayer = new QMediaPlayer(this);
+    QString soundFilePath = QCoreApplication::applicationDirPath() + "/Assets/notification.wav";
+    notificationSoundPlayer->setSource(QUrl::fromLocalFile(soundFilePath));
+    notificationSoundPlayer->setAudioOutput(new QAudioOutput);
 
     timer = new QTimer();
     connect(timer, &QTimer::timeout, this, &NotificationWidget::hideAnimation);
@@ -70,6 +76,7 @@ void NotificationWidget::showNotification()
     }
     ui->senderLabel->setText(senderName_);
     adjustSize();
+    notificationSoundPlayer->play();
     show();
 }
 

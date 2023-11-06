@@ -13,6 +13,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+find_package(Qt6 COMPONENTS Multimedia REQUIRED)
 
 set(PROJECT_SOURCES
         main.cpp
@@ -131,7 +132,10 @@ target_link_libraries(Widget_Client PRIVATE certificateUtils)
 
 target_link_libraries(Widget_Client PRIVATE ${OPENSSL_LIBRARIES})
 target_link_libraries(Widget_Client PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
-
+target_link_libraries(Widget_Client
+    PRIVATE
+    Qt6::Multimedia
+)
 set_target_properties(Widget_Client PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}

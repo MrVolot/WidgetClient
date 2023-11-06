@@ -3,6 +3,7 @@
 #include <QWidget>
 #include <QPropertyAnimation>
 #include <QTimer>
+#include <QMediaPlayer>
 
 namespace Ui {
 class NotificationWidget;
@@ -26,7 +27,7 @@ private:
     QPropertyAnimation animation;
     float popupOpacity;
     QTimer *timer;
-
+    QMediaPlayer *notificationSoundPlayer;
 private slots:
     void hideAnimation();
     void hide();
