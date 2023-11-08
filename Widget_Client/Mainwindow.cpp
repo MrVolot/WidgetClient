@@ -6,7 +6,7 @@
 #include <QDateTime>
 #include "NotificationWidget.h"
 
-MainWindow::MainWindow(boost::asio::io_service& service, const std::string& hash, bool isGuestAccount, QWidget *parent)
+MainWindow::MainWindow(boost::asio::io_service& service, const std::string& hash, const QString& userNickname, bool isGuestAccount, QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
@@ -37,12 +37,13 @@ MainWindow::MainWindow(boost::asio::io_service& service, const std::string& hash
     connect(mediator_, &Mediator::contextMenuSignal, this, &MainWindow::onContextMenuSlot);
     connect(mediator_, &Mediator::contextMenuMessageRemovalFromDbSignal, this, &MainWindow::onContextMenuMessageRemovalFromDbSlot);
 
-    settingsDialog_.reset(new SettingsDialog(this, isGuestAccount));
+    settingsDialog_.reset(new SettingsDialog(this, isGuestAccount, userNickname));
     connect(&*settingsDialog_, &SettingsDialog::sendEmailForVerificationSignal, this, &MainWindow::onSendEmailForVerificationSignal);
     connect(&*settingsDialog_, &SettingsDialog::sendVerificationCodeSignal, this, &MainWindow::onSendVerificationCodeSignal);
     connect(&*settingsDialog_, &SettingsDialog::disableEmailAuthenticationSignal, this, &MainWindow::onDisableEmailAuthentication);
     connect(&*settingsDialog_, &SettingsDialog::deleteAccountSignal, this, &MainWindow::onDeleteAccount);
     connect(&*settingsDialog_, &SettingsDialog::changePassword, this, &MainWindow::onChangePassword);
+    connect(&*settingsDialog_, &SettingsDialog::updateAvatar, this, &MainWindow::onUpdateAvatar);
     connect(&messenger_->signalHandler, &MessengerSignalHandler::sendCodeVerificationResult, &*settingsDialog_, &SettingsDialog::retrieveCodeVerificationResult);
 }
 
@@ -223,5 +224,10 @@ void MainWindow::onDeleteAccount()
 void MainWindow::onChangePassword(const std::string &newPassword)
 {
     messenger_->changePassword(newPassword);
+}
+
+void MainWindow::onUpdateAvatar(const std::string &photoStream)
+{
+    messenger_->updateAvatar(photoStream);
 }
 

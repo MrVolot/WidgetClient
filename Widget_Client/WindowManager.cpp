@@ -9,9 +9,9 @@ WindowManager::WindowManager(boost::asio::io_service& service): service_{service
     registerDialog_->exec();
 }
 
-void WindowManager::onSuccessfulLogin(const std::string& hash, bool isGuestAccount)
+void WindowManager::onSuccessfulLogin(const std::string& hash, const QString& userNickname, bool isGuestAccount)
 {
     registerDialog_->hide();
-    mainWindow_.reset(new MainWindow{service_, hash, isGuestAccount});
+    mainWindow_.reset(new MainWindow{service_, hash, userNickname, isGuestAccount});
     mainWindow_->show();
 }

@@ -25,6 +25,7 @@ class RegisterDialog : public QDialog, public std::enable_shared_from_this<Regis
     std::condition_variable cv_;
     std::string serverResponseString_;
     std::string hash_;
+    QString userNickname_;
     Config config_;
     boost::asio::ssl::context ssl_context_;
     std::string uniqueGuid_;
@@ -56,7 +57,7 @@ private:
     void sendCredentials(const std::string& command);
 
 signals:
-    void onSuccessfulLogin(const std::string& hash, bool isGuestAccount = false);
+    void onSuccessfulLogin(const std::string& hash, const QString& userNickname, bool isGuestAccount = false);
     void cleanEmailCodeAndShowError(const std::string& errorMessage);
 };
 

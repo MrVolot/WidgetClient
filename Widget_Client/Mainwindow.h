@@ -18,7 +18,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(boost::asio::io_service& service, const std::string& hash, bool isGuestAccount = false, QWidget *parent = nullptr);
+    MainWindow(boost::asio::io_service& service, const std::string& hash, const QString& userNickname, bool isGuestAccount = false, QWidget *parent = nullptr);
     ~MainWindow();
 private:
     Ui::MainWindow *ui;
@@ -54,6 +54,7 @@ private slots:
     void onEditMessageInDb(const MessageInfo &msgInfo);
     void onDeleteAccount();
     void onChangePassword(const std::string& newPassword);
+    void onUpdateAvatar(const std::string& photoStream);
 signals:
     void createMessageInstanceSignal(const MessageInfo &msgInfo);
 };

@@ -91,6 +91,7 @@ public:
     void editMessageInDb(const MessageInfo & msgInfo);
     void deleteAccount();
     void changePassword(const std::string& newPassword);
+    void updateAvatar(const std::string &photoStream);
 };
 
 template <typename Caller>
@@ -660,5 +661,13 @@ void Messenger<Caller>::changePassword(const std::string& newPassword){
     Json::Value value;
     value["command"] = CHANGE_PASSWORD;
     value["newPassword"] = newPassword;
+    handler_->callWrite(writer_.write(value));
+}
+
+template <typename Caller>
+void Messenger<Caller>::updateAvatar(const std::string &photoStream){
+    Json::Value value;
+    value["command"] = UPDATE_AVATAR;
+    value["photoStream"] = photoStream;
     handler_->callWrite(writer_.write(value));
 }

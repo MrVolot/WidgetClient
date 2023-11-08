@@ -1,15 +1,19 @@
 #include "SettingsDialog.h"
+#include "qpainter.h"
 #include "ui_SettingsDialog.h"
 #include <QPushButton>
 #include <QMessageBox>
 #include <QGraphicsDropShadowEffect>
 #include <QTimer>
+#include <QFileDialog>
+#include <QBuffer>
 
 
-SettingsDialog::SettingsDialog(QWidget *parent, bool isGuestAccount) :
+SettingsDialog::SettingsDialog(QWidget *parent, bool isGuestAccount, const QString& userNickname) :
     QDialog(parent),
     ui(new Ui::SettingsDialog),
     isGuestAccount_{isGuestAccount},
+    userNickname_{userNickname},
     emailVarified_{false},
     isCodeVerificationStage_{false}
 {
@@ -27,7 +31,6 @@ SettingsDialog::SettingsDialog(QWidget *parent, bool isGuestAccount) :
     profileLayout = new QVBoxLayout();
     authLabel = new QLabel("Authentication", this);
     toggleButton = new AnimatedToggleButton(this);
-    profilePlaceholder = new QLabel("Profile information here", this);
     changePasswordButton = new QPushButton("Change Password", this);
     changePasswordButton->setStyleSheet(R"(
         QPushButton {
@@ -110,6 +113,21 @@ SettingsDialog::SettingsDialog(QWidget *parent, bool isGuestAccount) :
             border-color: #3A3F44;
         }
     )");
+    profilePictureLabel = new ClickableLabel(this);
+    profilePictureLabel->setCursor(Qt::PointingHandCursor);
+    nicknameLabel = new QLabel(this);
+    auto path {QCoreApplication::applicationDirPath() + "/Assets/avatar.png"};
+    if(QFileInfo::exists(path)){
+        QPixmap originalPixmap {path};
+        customizeAvatar(originalPixmap);
+    }else{
+        QPixmap originalPixmap {QCoreApplication::applicationDirPath() + "/Assets/noProfileImage.jpg"};
+        customizeAvatar(originalPixmap);
+    }
+    nicknameLabel->setText(userNickname);
+    nicknameLabel->setAlignment(Qt::AlignCenter);
+    nicknameLabel->setStyleSheet("QLabel { color: #FFFFFF; font: bold 14px; }"); // Example style
+
     newPasswordEdit = new QLineEdit(passwordChangeWidget);
     confirmPasswordEdit = new QLineEdit(passwordChangeWidget);
     submitPasswordButton = new QPushButton("Submit New Password", passwordChangeWidget);
@@ -120,7 +138,8 @@ SettingsDialog::SettingsDialog(QWidget *parent, bool isGuestAccount) :
     // Widgets setup
     hLayout->addWidget(authLabel);
     hLayout->addWidget(toggleButton);
-    profileLayout->addWidget(profilePlaceholder);
+    profileLayout->addWidget(profilePictureLabel);
+    profileLayout->addWidget(nicknameLabel);
 
     // Set echo mode for password line edits
     newPasswordEdit->setEchoMode(QLineEdit::Password);
@@ -168,6 +187,7 @@ SettingsDialog::SettingsDialog(QWidget *parent, bool isGuestAccount) :
         confirmPasswordEdit->clear();
     });
     connect(submitPasswordButton, &QPushButton::clicked, this, &SettingsDialog::onChangePasswordSubmitted);
+    connect(profilePictureLabel, &ClickableLabel::clicked, this, &SettingsDialog::onChangeAvatarClicked);
 }
 
 SettingsDialog::~SettingsDialog()
@@ -324,4 +344,32 @@ void SettingsDialog::showTemporaryPopup(const QString &message) {
     popup->show();
 
     QTimer::singleShot(2000, popup, &QLabel::deleteLater);
+}
+
+void SettingsDialog::onChangeAvatarClicked()
+{
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Select Avatar"), "", tr("Images (*.png *.jpg *.jpeg *.bmp *.gif)"));
+    if (!fileName.isEmpty()) {
+        QPixmap originalPixmap(fileName);
+        originalPixmap.toImage().save(QCoreApplication::applicationDirPath() + "/Assets/avatar.png");
+        customizeAvatar(originalPixmap);
+//        QByteArray byteArray;
+//        QDataStream stream(&byteArray, QIODevice::WriteOnly);
+//        stream << originalPixmap;
+//        emit updateAvatar(base64String.toStdString());
+    }
+}
+
+void SettingsDialog::customizeAvatar(QPixmap& originalPixmap)
+{
+    originalPixmap = originalPixmap.scaled(100, 100, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    QBitmap mask(originalPixmap.size());
+    mask.fill(Qt::color0);
+    QPainter painter(&mask);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.setBrush(Qt::color1);
+    painter.drawEllipse(0, 0, mask.width(), mask.height());
+    originalPixmap.setMask(mask);
+    profilePictureLabel->setPixmap(originalPixmap);
+    profilePictureLabel->setAlignment(Qt::AlignCenter);
 }

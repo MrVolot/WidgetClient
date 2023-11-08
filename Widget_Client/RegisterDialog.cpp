@@ -10,6 +10,7 @@
 RegisterDialog::RegisterDialog(boost::asio::io_service& service, QWidget *parent) :
     QDialog(parent),
     service_{service},
+    userNickname_{""},
     config_{"config.txt"},
     ssl_context_{boost::asio::ssl::context::sslv23},
     ui(new Ui::RegisterDialog)
@@ -117,6 +118,9 @@ unsigned int RegisterDialog::checkServerResponse()
     if(!value["token"].empty()){
         hash_ = value["token"].asString();
     }
+    if(!value["userNickname"].empty()){
+        userNickname_ = value["userNickname"].asCString();
+    }
     return value["command"].asInt();
 }
 
@@ -153,7 +157,7 @@ void RegisterDialog::on_LoginButton_clicked()
     cv_.wait(locker);
     auto serverResponse {checkServerResponse()};
     if(serverResponse == AUTHSUCCESS || serverResponse == RIGHTCREDENTIALS || serverResponse == GUEST_USER_USER_SUCCESSFUL_LOGIN){
-        emit onSuccessfulLogin(hash_);
+        emit onSuccessfulLogin(hash_, userNickname_);
     }
     if(serverResponse == WRONGCREDENTIALS){
         ui->Password->clear();
@@ -181,7 +185,7 @@ void RegisterDialog::on_RegisterButton_clicked()
     cv_.wait(locker);
     auto serverResponse {checkServerResponse()};
     if(serverResponse == AUTHSUCCESS || serverResponse == RIGHTCREDENTIALS || serverResponse == GUEST_USER_USER_SUCCESSFUL_LOGIN){
-        emit onSuccessfulLogin(hash_);
+        emit onSuccessfulLogin(hash_, userNickname_);
     }
     if(serverResponse == USERALREADYEXISTS){
         ui->Password->clear();
@@ -236,7 +240,7 @@ void RegisterDialog::on_guestLogin_clicked()
     cv_.wait(locker);
     auto serverResponse {checkServerResponse()};
     if(serverResponse == AUTHSUCCESS || serverResponse == RIGHTCREDENTIALS || serverResponse == GUEST_USER_USER_SUCCESSFUL_LOGIN){
-        emit onSuccessfulLogin(hash_, true);
+        emit onSuccessfulLogin(hash_, userNickname_, true);
     }
     if(serverResponse == USERALREADYEXISTS){
         ui->Password->clear();
@@ -256,7 +260,7 @@ void RegisterDialog::onSendVerificationCodeSignal(const std::string &verCode)
     cv_.wait(locker);
     auto serverResponse {checkServerResponse()};
     if(serverResponse == CORRECT_CODE){
-        emit onSuccessfulLogin(hash_);
+        emit onSuccessfulLogin(hash_, userNickname_);
     }
     if(serverResponse == WRONG_CODE){
         emit cleanEmailCodeAndShowError("Wrong code! Try again.");
