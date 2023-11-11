@@ -142,11 +142,8 @@ Messenger<Caller>::Messenger(boost::asio::io_service& service, const std::string
     handler_->setWriteCallback(&Messenger::writeCallback);
 
     secureTransmitter_.reset(new SecureTransmitter{});
-    if(isGuestAccount){
-        publicKey_ = secureTransmitter_->generateKeys();
-    }else{
-        secureTransmitter_->setPrivateKey(privateKeyLocation.value());
-    }
+    publicKey_ = secureTransmitter_->generateKeys();
+    secureTransmitter_->setPrivateKey(privateKeyLocation.value());
 }
 
 template <typename Caller>
