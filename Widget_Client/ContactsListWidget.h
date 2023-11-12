@@ -23,6 +23,7 @@ public:
     void showTemporaryContactsWidget(const std::vector<Contact>& contacts);
     void showMainContactsWidget();
     void addContacts(std::vector<Contact> friendList, bool isMain = true);
+    std::pair<QListWidgetItem*, ContactsWidget*> constructContact(Contact contact);
     std::optional<std::pair<QListWidgetItem*, ContactsWidget*>> findFriendById(unsigned long long id);
 private:
     Ui::ContactsListWidget *ui;

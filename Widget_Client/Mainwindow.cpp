@@ -110,13 +110,16 @@ void MainWindow::createMessageInstance(const MessageInfo &msgInfo)
     auto tmpMsgInfo{msgInfo};
     auto currentDateTime{QDateTime::currentDateTime()};
     tmpMsgInfo.sentTime = currentDateTime.time().toString("hh:mm");
-    if(chatsMap.find(id) != chatsMap.end()){
-        chatsMap[id]->receiveMessage(tmpMsgInfo, currentDateTime, false);
+    if(chatsMap.find(id) == chatsMap.end()){
+        chatsMap[id].reset(new Chat{id, msgInfo.senderName.c_str(), mediator_});
     }
+    chatsMap[id]->receiveMessage(tmpMsgInfo, currentDateTime, false);
     auto friendWidget {contactsListWidget->findFriendById(id)};
-    if(friendWidget.has_value()){
-        friendWidget.value().second->setLastMessage(false, tmpMsgInfo.text);
+    if(!friendWidget.has_value()){
+        Contact contact{msgInfo.senderName.c_str(), id, {123, tmpMsgInfo.text}, {}};
+        friendWidget = contactsListWidget->constructContact(contact);
     }
+    friendWidget.value().second->setLastMessage(false, tmpMsgInfo.text);
     auto currentItem {contactsListWidget->getContactsWidget()->currentItem()};
     auto currentWidget{dynamic_cast<ContactsWidget*>(contactsListWidget->getContactsWidget()->itemWidget(currentItem))};
     if(QApplication::applicationState() == Qt::ApplicationInactive ||
