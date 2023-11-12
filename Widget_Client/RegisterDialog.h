@@ -4,6 +4,7 @@
 #include <boost/asio.hpp>
 #include <mutex>
 #include <condition_variable>
+#include <SecureTransmitter.h>
 #include "CodeVerificationWidget.h"
 #include "Config.h"
 #include <boost/asio/ssl.hpp>
@@ -31,6 +32,7 @@ class RegisterDialog : public QDialog, public std::enable_shared_from_this<Regis
     std::string uniqueGuid_;
     unsigned long long personalId_;
     std::unique_ptr<CodeVerificationWidget> codeVerificationWidget_;
+    std::unique_ptr<SecureTransmitter> secureTransmitter_;
 
     void writeCallback(std::shared_ptr<IConnectionHandler<RegisterDialog>> handler, const boost::system::error_code &err, size_t bytes_transferred);
     void readCallback(std::shared_ptr<IConnectionHandler<RegisterDialog>> handler, const boost::system::error_code &err, size_t bytes_transferred);

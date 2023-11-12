@@ -18,5 +18,6 @@ public:
     EVP_PKEY* transformStringKey(const std::string& public_key_str);
     void print_openssl_error();
     std::string generateKeys();
+    std::string getPublicKeyFromPrivateKey();
 };
 

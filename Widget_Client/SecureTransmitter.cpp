@@ -243,3 +243,45 @@ std::string SecureTransmitter::generateKeys()
     // 7. Return the public key as a string
     return public_key_str;
 }
+
+std::string SecureTransmitter::getPublicKeyFromPrivateKey() {
+    if (!privateKey_) {
+        throw std::runtime_error("Private key is not set");
+    }
+
+    // Get the EC_KEY from the EVP_PKEY structure
+    EC_KEY* ec_key = EVP_PKEY_get1_EC_KEY(privateKey_);
+    if (!ec_key) {
+        throw std::runtime_error("Failed to extract EC_KEY from EVP_PKEY");
+    }
+
+    // Extract the public key component
+    const EC_POINT* public_key_point = EC_KEY_get0_public_key(ec_key);
+    if (!public_key_point) {
+        EC_KEY_free(ec_key);
+        throw std::runtime_error("Failed to get public key from EC_KEY");
+    }
+
+    // Convert the public key point to a string
+    BIO* public_key_bio = BIO_new(BIO_s_mem());
+    if (!public_key_bio) {
+        EC_KEY_free(ec_key);
+        throw std::runtime_error("Failed to create BIO for public key");
+    }
+
+    if (!PEM_write_bio_EC_PUBKEY(public_key_bio, ec_key)) {
+        BIO_free(public_key_bio);
+        EC_KEY_free(ec_key);
+        throw std::runtime_error("Failed to write public key to BIO");
+    }
+
+    BUF_MEM* public_key_mem;
+    BIO_get_mem_ptr(public_key_bio, &public_key_mem);
+    std::string public_key_str(public_key_mem->data, public_key_mem->length);
+
+    // Clean up
+    BIO_free(public_key_bio);
+    EC_KEY_free(ec_key);
+
+    return public_key_str;
+}

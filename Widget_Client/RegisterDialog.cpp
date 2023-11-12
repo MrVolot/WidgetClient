@@ -58,6 +58,8 @@ RegisterDialog::RegisterDialog(boost::asio::io_service& service, QWidget *parent
     handler_ = std::make_shared<HttpsConnectionHandler<RegisterDialog, ConnectionHandlerType::CLIENT>>(service_, *this, ssl_context_);
     handler_->setAsyncReadCallback(&RegisterDialog::readCallback);
     handler_->setWriteCallback(&RegisterDialog::writeCallback);
+
+    secureTransmitter_.reset(new SecureTransmitter{});
 }
 
 RegisterDialog::~RegisterDialog()
@@ -224,6 +226,10 @@ void RegisterDialog::sendCredentials(const std::string& command)
     value["login"] = ui->Login->text().toStdString();
     value["deviceId"] = createDeviceId();
     value["password"] = ui->Password->text().toStdString();
+    if(command == "register"){
+        secureTransmitter_->setPrivateKey(config_.getConfigValue("privateKeyLocation").value());
+        value["publicKey"] = secureTransmitter_->getPublicKeyFromPrivateKey();
+    }
     handler_->callWrite(writer_.write(value));
 }
 
