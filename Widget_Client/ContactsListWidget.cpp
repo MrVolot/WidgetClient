@@ -89,6 +89,16 @@ void ContactsListWidget::addContacts(std::vector<Contact> friendList, bool isMai
     }
 }
 
+std::pair<QListWidgetItem*, ContactsWidget*> ContactsListWidget::constructContact(Contact contact)
+{
+    auto item {new QListWidgetItem{}};
+    ContactsWidget* contactWidget{new ContactsWidget{contact}};
+    item->setSizeHint(contactWidget->sizeHint());
+    mainContactsWidget->addItem(item);
+    mainContactsWidget->setItemWidget(item, contactWidget);
+    return std::make_pair(item, contactWidget);
+}
+
 void ContactsListWidget::on_tempContactsWidget_itemClicked(QListWidgetItem *item)
 {
     auto contactInfo{dynamic_cast<ContactsWidget*>(tempContactsWidget->itemWidget(item))->getContact()};

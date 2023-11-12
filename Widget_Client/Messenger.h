@@ -48,6 +48,7 @@ class Messenger: public std::enable_shared_from_this<Messenger<Caller>>
     std::unordered_map<int, std::promise<void>> pendingPromises_;
     Json::Value tempValue_;
     Json::FastWriter writer_;
+    std::map<std::string, std::function<void(std::string)>>pendingPublicKeyCallbacks_;
 
     void readCallback(std::shared_ptr<IConnectionHandler<Messenger>> handler, const boost::system::error_code &err, size_t bytes_transferred);
     void writeCallback(std::shared_ptr<IConnectionHandler<Messenger>> handler, const boost::system::error_code &err, size_t bytes_transferred);
@@ -60,10 +61,12 @@ class Messenger: public std::enable_shared_from_this<Messenger<Caller>>
     std::optional<Contact> getContactById(long long id);
     std::optional<std::vector<unsigned char>> tryGetSharedKeyById(unsigned long long id);
     std::string requestPublicKey(unsigned long long userId);
+    void requestPublicKey(unsigned long long userId, std::function<void(std::string)>);
     std::string file_to_stream_buffer(const std::string& file_path);
     bool create_file_from_string(const std::string& file_path, const std::string& content);
     std::string base64_encode(const std::string& data);
     std::string base64_decode(const std::string& encoded_data);
+    void processSharedKey(unsigned long long senderId, const Json::Value& value, const std::vector<unsigned char>& sharedKey);
 public:
     bool infoIsLoaded;
     bool possibleContactsLoaded;
@@ -142,8 +145,11 @@ Messenger<Caller>::Messenger(boost::asio::io_service& service, const std::string
     handler_->setWriteCallback(&Messenger::writeCallback);
 
     secureTransmitter_.reset(new SecureTransmitter{});
-    publicKey_ = secureTransmitter_->generateKeys();
-    secureTransmitter_->setPrivateKey(privateKeyLocation.value());
+    if(isGuestAccount){
+        publicKey_ = secureTransmitter_->generateKeys();
+    }else{
+        secureTransmitter_->setPrivateKey(privateKeyLocation.value());
+    }
 }
 
 template <typename Caller>
@@ -223,6 +229,15 @@ void Messenger<Caller>::parseServerCommands(const std::string &data)
             it->second.set_value(publicKey);
             pendingPublicKeyPromises_.erase(it);
         }
+
+        auto it2 = pendingPublicKeyCallbacks_.find(userId);
+        if (it2 != pendingPublicKeyCallbacks_.end()) {
+            // Call the callback with the received public key
+            it2->second(publicKey);
+
+            // Remove the entry from the map after handling the response
+            pendingPublicKeyCallbacks_.erase(it2);
+        }
         break;
     }
     case DELETE_MESSAGE:{
@@ -272,23 +287,13 @@ void Messenger<Caller>::receiveMessage(const std::string &data)
         //what about isAuthor?
         //TODO: REMOVE ISAUTHOR
         sharedKey = possibleSharedKey.value();
+        processSharedKey(senderId, value, sharedKey);
     }else{
-        std::string publicKey = requestPublicKey(senderId);
-        sharedKey = secureTransmitter_->generateSharedKey(publicKey);
-        friendList_.push_back({"", senderId, {senderId, ""}, sharedKey});
+        requestPublicKey(senderId, [this, senderId, value](const std::string& publicKey){
+            auto sharedKey = secureTransmitter_->generateSharedKey(publicKey);
+            processSharedKey(senderId, value, sharedKey);
+        });
     }
-    bool isAuthor{false};
-    if(senderId == id_){
-        isAuthor = true;
-    }
-    MessageInfo msgInfo{value["messageGuid"].asCString(),
-                        senderId,
-                        std::stoull(value["receiver"].asString()),
-                        secureTransmitter_->decryptMessage(value["message"].asString(),
-                                                           sharedKey).c_str(),
-                        value["time"].asCString(),
-                        isAuthor};
-    senderCallback_(caller_, msgInfo);
 }
 
 template<typename Caller>
@@ -517,10 +522,26 @@ std::string Messenger<Caller>::requestPublicKey(unsigned long long userId) {
 
     // Store the promise in a map, using the userId as the key
     pendingPublicKeyPromises_[strUserId] = std::move(promise);
-
     // Wait for the response
     return future.get();
 }
+
+template <typename Caller>
+void Messenger<Caller>::requestPublicKey(unsigned long long userId, std::function<void(std::string)> callback) {
+    // Create a JSON value with the request command and user ID
+    Json::Value value;
+    Json::StreamWriterBuilder writer;
+    std::string strUserId = std::to_string(userId);
+    value["command"] = REQUEST_PUBLIC_KEY;
+    value["id"] = strUserId;
+
+    // Send the request to the server
+    handler_->callWrite(Json::writeString(writer, value));
+
+    // Store the callback in a map, using the userId as the key
+    pendingPublicKeyCallbacks_[strUserId] = callback;
+}
+
 
 template <typename Caller>
 std::string& Messenger<Caller>::getEmail(){
@@ -667,4 +688,22 @@ void Messenger<Caller>::updateAvatar(const std::string &photoStream){
     value["command"] = UPDATE_AVATAR;
     value["photoStream"] = photoStream;
     handler_->callWrite(writer_.write(value));
+}
+
+template <typename Caller>
+void Messenger<Caller>::processSharedKey(unsigned long long senderId, const Json::Value& value, const std::vector<unsigned char>& sharedKey){
+    friendList_.push_back({"", senderId, {senderId, ""}, sharedKey});
+    bool isAuthor{false};
+    if(senderId == id_){
+        isAuthor = true;
+    }
+    MessageInfo msgInfo{value["messageGuid"].asCString(),
+                        senderId,
+                        std::stoull(value["receiver"].asString()),
+                        secureTransmitter_->decryptMessage(value["message"].asString(),
+                                                           sharedKey).c_str(),
+                        value["time"].asCString(),
+                        isAuthor,
+                        value["senderName"].asString()};
+    senderCallback_(caller_, msgInfo);
 }
