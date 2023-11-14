@@ -34,6 +34,7 @@ private:
     bool canProceed{false};
     void sendMessageToChat(const MessageInfo &messageInfo);
     void popupNotification(const QString &msg, const QString &friendName, unsigned long long id, unsigned long long timeout=0);
+    void processChatDeletion(unsigned long long chatId);
 private slots:
     void loadChatInfo(Contact& contact);
     void sendMessage(const MessageInfo &msgInfo);
@@ -55,6 +56,8 @@ private slots:
     void onDeleteAccount();
     void onChangePassword(const std::string& newPassword);
     void onUpdateAvatar(const std::string& photoStream);
+    void onDeleteChat(unsigned long long chatId);
+    void onDeleteChatFromList(unsigned long long chatId);
 signals:
     void createMessageInstanceSignal(const MessageInfo &msgInfo);
 };

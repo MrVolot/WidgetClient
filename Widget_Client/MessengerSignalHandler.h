@@ -10,5 +10,6 @@ signals:
     void deleteMessageRequest(const QString& chatId, const QString& messageGuid);
     void sendCodeVerificationResult(bool result);
     void editMessageRequest(const QString& chatId, const QString& messageGuid, const QString& newText);
+    void deleteChatFromList(unsigned long long chatId);
 };
 

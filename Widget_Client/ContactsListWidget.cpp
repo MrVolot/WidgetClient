@@ -1,9 +1,10 @@
 #include "ContactsListWidget.h"
 #include "ui_ContactsListWidget.h"
 
-ContactsListWidget::ContactsListWidget(QWidget *parent) :
+ContactsListWidget::ContactsListWidget(Mediator *mediator, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ContactsListWidget),
+    mediator_{mediator},
     isMainWidgetOn{true},
     currentFriend{0}
 {
@@ -77,7 +78,7 @@ void ContactsListWidget::addContacts(std::vector<Contact> friendList, bool isMai
 {
     for(auto& contactItem : friendList){
         auto item {new QListWidgetItem{}};
-        ContactsWidget* contactWidget{new ContactsWidget{contactItem}};
+        ContactsWidget* contactWidget{createContact(contactItem)};
         item->setSizeHint(contactWidget->sizeHint());
         if(isMain){
             mainContactsWidget->addItem(item);
@@ -85,6 +86,7 @@ void ContactsListWidget::addContacts(std::vector<Contact> friendList, bool isMai
         }else{
             tempContactsWidget->addItem(item);
             tempContactsWidget->setItemWidget(item, contactWidget);
+            contactWidget->hideDeleteChatButton();
         }
     }
 }
@@ -92,7 +94,7 @@ void ContactsListWidget::addContacts(std::vector<Contact> friendList, bool isMai
 std::pair<QListWidgetItem*, ContactsWidget*> ContactsListWidget::constructContact(Contact contact)
 {
     auto item {new QListWidgetItem{}};
-    ContactsWidget* contactWidget{new ContactsWidget{contact}};
+    ContactsWidget* contactWidget{createContact(contact)};
     item->setSizeHint(contactWidget->sizeHint());
     mainContactsWidget->addItem(item);
     mainContactsWidget->setItemWidget(item, contactWidget);
@@ -103,7 +105,7 @@ void ContactsListWidget::on_tempContactsWidget_itemClicked(QListWidgetItem *item
 {
     auto contactInfo{dynamic_cast<ContactsWidget*>(tempContactsWidget->itemWidget(item))->getContact()};
     if(!setAndOpenChat(contactInfo.getId())){
-        ContactsWidget* contact{new ContactsWidget{contactInfo}};
+        ContactsWidget* contact{createContact(contactInfo)};
         auto newItem = new QListWidgetItem{};
         newItem->setSizeHint(contact->sizeHint());
         mainContactsWidget->addItem(newItem);
@@ -135,8 +137,28 @@ std::optional<std::pair<QListWidgetItem*, ContactsWidget*>> ContactsListWidget::
     return {};
 }
 
+void ContactsListWidget::removeChat(unsigned long long id)
+{
+    for (int i = 0; i < mainContactsWidget->count(); ++i) {
+        QListWidgetItem* item = mainContactsWidget->item(i);
+        ContactsWidget* contactsWidget = dynamic_cast<ContactsWidget*>(mainContactsWidget->itemWidget(item));
+        if (contactsWidget && contactsWidget->getContact().getId() == id) {
+            delete mainContactsWidget->takeItem(i);
+            delete contactsWidget;
+            break;
+        }
+    }
+}
+
 void ContactsListWidget::setCurrentChatAndLoadChatInfo(QListWidgetItem *item, Contact& contact)
 {
     mainContactsWidget->setCurrentItem(item);
     emit loadChatInfo(contact);
+}
+
+ContactsWidget *ContactsListWidget::createContact(Contact contact)
+{
+    ContactsWidget* contactWidget{new ContactsWidget{contact, mediator_}};
+    connect(contactWidget, &ContactsWidget::deleteChatSignal, &*mediator_, &Mediator::onDeleteChatSignal);
+    return contactWidget;
 }

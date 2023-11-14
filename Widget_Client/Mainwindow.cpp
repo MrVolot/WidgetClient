@@ -17,8 +17,10 @@ MainWindow::MainWindow(boost::asio::io_service& service, const std::string& hash
     ui->splitter->setCollapsible(0, false);
     ui->splitter->setCollapsible(1, false);
 
+    mediator_ = new Mediator(this);
+
     //Setting up contactsListWidget
-    contactsListWidget.reset(new ContactsListWidget{});
+    contactsListWidget.reset(new ContactsListWidget{mediator_});
     connect(&*contactsListWidget, &ContactsListWidget::loadChatInfo, this, &MainWindow::loadChatInfo);
     connect(&*contactsListWidget, &ContactsListWidget::cleanSearchLine, this, &MainWindow::cleanSearchLine);
     ui->contactsListLayout->addWidget(contactsListWidget.get());
@@ -27,15 +29,16 @@ MainWindow::MainWindow(boost::asio::io_service& service, const std::string& hash
     messenger_.reset(new Messenger<MainWindow>{service, hash, this, isGuestAccount});
     connect(&messenger_->signalHandler, &MessengerSignalHandler::deleteMessageRequest, this, &MainWindow::onDeleteMessageRequest);
     connect(&messenger_->signalHandler, &MessengerSignalHandler::editMessageRequest, this, &MainWindow::onEditMessageRequest);
+    connect(&messenger_->signalHandler, &MessengerSignalHandler::deleteChatFromList, this, &MainWindow::onDeleteChatFromList);
     messenger_->initializeConnection();
     messenger_->setReceiveMessageCallback(&MainWindow::sendMessageToChat);
     while(messenger_->infoIsLoaded);
     contactsListWidget->addContacts(messenger_->getFriendList());
     connect(this, &MainWindow::createMessageInstanceSignal, this, &MainWindow::createMessageInstance);
 
-    mediator_ = new Mediator(this);
     connect(mediator_, &Mediator::contextMenuSignal, this, &MainWindow::onContextMenuSlot);
     connect(mediator_, &Mediator::contextMenuMessageRemovalFromDbSignal, this, &MainWindow::onContextMenuMessageRemovalFromDbSlot);
+    connect(mediator_, &Mediator::deleteChat, this, &MainWindow::onDeleteChat);
 
     settingsDialog_.reset(new SettingsDialog(this, isGuestAccount, userNickname));
     connect(&*settingsDialog_, &SettingsDialog::sendEmailForVerificationSignal, this, &MainWindow::onSendEmailForVerificationSignal);
@@ -93,6 +96,27 @@ void MainWindow::popupNotification(const QString &msg, const QString &friendName
     connect(notificationWidget, &NotificationWidget::showMainWindow, this, &MainWindow::showAndActivate);
     connect(notificationWidget, &NotificationWidget::reactOnNotification, contactsListWidget.get(), &ContactsListWidget::setAndOpenChat);
     QTimer::singleShot(timeout, notificationWidget, &NotificationWidget::showNotification);
+}
+
+void MainWindow::processChatDeletion(unsigned long long chatId)
+{
+    auto chatIter = chatsMap.find(chatId);
+    if (chatIter != chatsMap.end()) {
+        // Loop through the widgets in the QVBoxLayout
+        for (int i = 0; i < ui->rightLayout->count(); ++i) {
+            QWidget* widget = ui->rightLayout->itemAt(i)->widget();
+            if (widget == chatIter->second.get()) {
+                ui->rightLayout->removeWidget(widget);
+                widget->setParent(nullptr); // Or delete widget; if appropriate
+                break;
+            }
+        }
+
+        // Delete the chat from the map
+        chatsMap.erase(chatId);
+    }
+    contactsListWidget->setCurrentFriendId(0);
+    contactsListWidget->removeChat(chatId);
 }
 
 void MainWindow::sendMessage(const MessageInfo &msgInfo)
@@ -232,5 +256,16 @@ void MainWindow::onChangePassword(const std::string &newPassword)
 void MainWindow::onUpdateAvatar(const std::string &photoStream)
 {
     messenger_->updateAvatar(photoStream);
+}
+
+void MainWindow::onDeleteChat(unsigned long long chatId)
+{
+    messenger_->deleteChat(chatId);
+    processChatDeletion(chatId);
+}
+
+void MainWindow::onDeleteChatFromList(unsigned long long chatId)
+{
+    processChatDeletion(chatId);
 }
 
