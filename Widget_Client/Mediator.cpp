@@ -22,3 +22,8 @@ void Mediator::onEditMessage(const MessageInfo & msgInfo)
 {
     emit editMessageSignal(msgInfo);
 }
+
+void Mediator::onDeleteChatSignal(unsigned long long id)
+{
+    emit deleteChat(id);
+}

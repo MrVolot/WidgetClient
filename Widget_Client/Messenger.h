@@ -95,6 +95,7 @@ public:
     void deleteAccount();
     void changePassword(const std::string& newPassword);
     void updateAvatar(const std::string &photoStream);
+    void deleteChat(unsigned long long chatId);
 };
 
 template <typename Caller>
@@ -262,6 +263,11 @@ void Messenger<Caller>::parseServerCommands(const std::string &data)
             sharedKey = secureTransmitter_->generateSharedKey(publicKey);
         }
         emit signalHandler.editMessageRequest(chatId, value["messageGuid"].asCString(), QString::fromStdString(secureTransmitter_->decryptMessage(value["newText"].asString(), sharedKey)));
+        break;
+    }
+    case DELETE_CHAT:{
+        auto chatId{value["chatId"].asUInt()};
+        emit signalHandler.deleteChatFromList(chatId);
         break;
     }
     case CODE_VERIFICATION:
@@ -706,4 +712,12 @@ void Messenger<Caller>::processSharedKey(unsigned long long senderId, const Json
                         isAuthor,
                         value["senderName"].asString()};
     senderCallback_(caller_, msgInfo);
+}
+
+template <typename Caller>
+void Messenger<Caller>::deleteChat(unsigned long long chatId){
+    Json::Value value;
+    value["command"] = DELETE_CHAT;
+    value["chatId"] = chatId;
+    handler_->callWrite(writer_.write(value));
 }
