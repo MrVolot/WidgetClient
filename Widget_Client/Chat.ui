@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>543</width>
-    <height>392</height>
+    <width>557</width>
+    <height>384</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -163,6 +163,16 @@ QPushButton:pressed {
          </property>
          <property name="contextMenuPolicy">
           <enum>Qt::DefaultContextMenu</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="cancelEditButton">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
          </property>
         </widget>
        </item>

@@ -22,7 +22,7 @@ public:
 private slots:
     void on_sendMsgBtn_clicked();
     void on_msgFiled_returnPressed();
-
+    void on_cancelEditButton_clicked();
 private:
     Ui::Chat *ui;
     unsigned long long friendId_;

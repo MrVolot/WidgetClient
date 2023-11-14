@@ -32,6 +32,8 @@ Chat::Chat(unsigned long long friendId, const QString& friendName, Mediator *med
 
     connect(mediator_, &Mediator::contextMenuMessageRemovalSignal, this, &Chat::onContextMenuMessageRemovalSignal);
     connect(mediator_, &Mediator::editMessageSignal, this, &Chat::onEditMessageRequested);
+    ui->cancelEditButton->setVisible(false);
+    ui->cancelEditButton->setIcon(QIcon(QCoreApplication::applicationDirPath() + "/Assets/cancelIcon.png"));
 }
 
 Chat::~Chat()
@@ -66,6 +68,7 @@ void Chat::loadChatHistory(std::vector<std::map<std::string, QString> > &chatHis
 
 void Chat::on_sendMsgBtn_clicked()
 {
+    ui->cancelEditButton->setVisible(false);
     if(ui->sendMsgBtn->text() == "Send"){
         auto currentDateTime{QDateTime::currentDateTime()};
         if(lastMessageDateTime.date() != currentDateTime.date()){
@@ -308,7 +311,17 @@ void Chat::dropEvent(QDropEvent *event) {
 }
 
 void Chat::onEditMessageRequested(const MessageInfo & msgInfo) {
+    ui->cancelEditButton->setVisible(true);
     ui->msgFiled->setText(msgInfo.text);
     ui->sendMsgBtn->setText(" OK ");
-    currentlyEditingMessage_ = msgInfo; // You need a member variable to track this
+    currentlyEditingMessage_ = msgInfo;
 }
+
+void Chat::on_cancelEditButton_clicked()
+{
+    ui->msgFiled->clear();
+    ui->sendMsgBtn->setText("Send");
+    ui->cancelEditButton->setVisible(false);
+    currentlyEditingMessage_ = MessageInfo{"", 0, 0, "", "", true};
+}
+
