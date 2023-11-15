@@ -150,6 +150,14 @@ void ContactsListWidget::removeChat(unsigned long long id)
     }
 }
 
+void ContactsListWidget::setLastMessage(unsigned long long chatId, const QString &message, bool isAuthor)
+{
+    auto foundFriend {findFriendById(chatId)};
+    if(foundFriend.has_value()){
+        foundFriend.value().second->setLastMessage(isAuthor, message);
+    }
+}
+
 void ContactsListWidget::setCurrentChatAndLoadChatInfo(QListWidgetItem *item, Contact& contact)
 {
     mainContactsWidget->setCurrentItem(item);

@@ -109,7 +109,8 @@ void Chat::receiveMessage(const MessageInfo &msgInfo, const QDateTime& sentTime,
     try{
         auto item {new QListWidgetItem{}};
         MessageWidget* tmpWidget{new MessageWidget{msgInfo, mediator_}};
-        if(createDateWidget || (!lastMessageDateTime.isNull() && lastMessageDateTime.date() != sentTime.date())){
+        if(createDateWidget || (!lastMessageDateTime.isNull() && lastMessageDateTime.date() != sentTime.date())
+            || !lastMessageDateTime.isValid()){
             MessagesDateWidget* dateWidget{new MessagesDateWidget{sentTime}};
             auto item2 {new QListWidgetItem{}};
             item2->setSizeHint(dateWidget->sizeHint());
@@ -263,6 +264,17 @@ void Chat::editMessageIfExists(const QString& messageGuid, const QString& newTex
     }
 }
 
+std::optional<MessageInfo> Chat::getLastMessage()
+{
+    auto count = messagesMap.size();
+    QListWidgetItem* item = ui->messageList->item(count);
+    MessageWidget* widgetPtr = qobject_cast<MessageWidget*>(ui->messageList->itemWidget(item));
+    if(widgetPtr!=nullptr){
+        return widgetPtr->getMessageInfo();
+    }
+    return{};
+}
+
 void Chat::onContextMenuMessageRemovalSignal(const MessageInfo & msgInfo)
 {
     auto it = messagesMap.find(msgInfo.messageGuid.toStdString());
@@ -278,8 +290,26 @@ void Chat::onContextMenuMessageRemovalSignal(const MessageInfo & msgInfo)
             delete widgetPtr;
         }
 
+        QListWidgetItem* item2 = ui->messageList->item(ui->messageList->count() - 1);
+        if(item2){
+            // TODO: I need to make sure that this is MessagesDateWidget. If it is not, then do not delete it
+            MessagesDateWidget* widgetPtr2 = qobject_cast<MessagesDateWidget*>(ui->messageList->itemWidget(item2));
+            if(widgetPtr2){
+                ui->messageList->removeItemWidget(item2);
+                delete item2;
+                delete widgetPtr2;
+                lastMessageDateTime = QDateTime::fromMSecsSinceEpoch(0);
+            }
+        }
+
         // Remove the entry from the map
         messagesMap.erase(it);
+        // Update the indices in the map
+        for (auto &pair : messagesMap) {
+            if (pair.second > rowIndex) {
+                pair.second--;
+            }
+        }
     }
 }
 

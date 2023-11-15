@@ -35,6 +35,9 @@ void ContactsWidget::setLastMessage(bool isAuthor, const QString &message)
         sender.append(message);
         ui->lastMessage->setText(sender);
         ui->lastMessage->update();
+    }else{
+        ui->lastMessage->setText("");
+        ui->lastMessage->update();
     }
 }
 
