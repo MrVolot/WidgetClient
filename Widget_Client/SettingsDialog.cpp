@@ -361,14 +361,16 @@ void SettingsDialog::onChangeAvatarClicked()
 
 void SettingsDialog::customizeAvatar(QPixmap& originalPixmap)
 {
-    originalPixmap = originalPixmap.scaled(100, 100, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    QBitmap mask(originalPixmap.size());
-    mask.fill(Qt::color0);
-    QPainter painter(&mask);
-    painter.setRenderHint(QPainter::Antialiasing, true);
-    painter.setBrush(Qt::color1);
-    painter.drawEllipse(0, 0, mask.width(), mask.height());
-    originalPixmap.setMask(mask);
-    profilePictureLabel->setPixmap(originalPixmap);
+    const QSize avatarSize(100, 100); // Set a constant size for the avatar
+    QPixmap scaledPixmap = originalPixmap.scaled(avatarSize, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+    QPixmap circularPixmap(avatarSize);
+    circularPixmap.fill(Qt::transparent);
+    QPainter painter(&circularPixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setBrush(QBrush(scaledPixmap));
+    painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+    painter.drawEllipse(circularPixmap.rect());
+    profilePictureLabel->setPixmap(circularPixmap);
     profilePictureLabel->setAlignment(Qt::AlignCenter);
 }
+
