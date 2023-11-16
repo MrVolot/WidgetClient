@@ -35,6 +35,7 @@ private:
     void sendMessageToChat(const MessageInfo &messageInfo);
     void popupNotification(const QString &msg, const QString &friendName, unsigned long long id, unsigned long long timeout=0);
     void processChatDeletion(unsigned long long chatId);
+    void updateLastMessageIfNecessary(unsigned long long friendId);
 private slots:
     void loadChatInfo(Contact& contact);
     void sendMessage(const MessageInfo &msgInfo);

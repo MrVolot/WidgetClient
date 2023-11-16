@@ -26,6 +26,7 @@ public:
     std::pair<QListWidgetItem*, ContactsWidget*> constructContact(Contact contact);
     std::optional<std::pair<QListWidgetItem*, ContactsWidget*>> findFriendById(unsigned long long id);
     void removeChat(unsigned long long id);
+    void setLastMessage(unsigned long long chatId, const QString& message, bool isAuthor);
 private:
     Ui::ContactsListWidget *ui;
     Mediator *mediator_;

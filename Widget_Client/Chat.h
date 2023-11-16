@@ -3,7 +3,7 @@
 #include "MessageWidget.h"
 #include <QWidget>
 #include <QDateTime>
-
+#include <optional>
 namespace Ui {
 class Chat;
 }
@@ -19,6 +19,7 @@ public:
     void loadChatHistory(std::vector<std::map<std::string, QString>>& chatHistory);
     QString getCurrentTime();
     void editMessageIfExists(const QString& messageGuid, const QString& newText);
+    std::optional<MessageInfo> getLastMessage();
 private slots:
     void on_sendMsgBtn_clicked();
     void on_msgFiled_returnPressed();

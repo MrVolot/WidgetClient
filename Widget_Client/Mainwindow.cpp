@@ -119,12 +119,19 @@ void MainWindow::processChatDeletion(unsigned long long chatId)
     contactsListWidget->removeChat(chatId);
 }
 
+void MainWindow::updateLastMessageIfNecessary(unsigned long long friendId)
+{
+    auto lastMessage{chatsMap[friendId]->getLastMessage()};
+    if(lastMessage.has_value()){
+        contactsListWidget->setLastMessage(friendId, lastMessage.value().text, lastMessage.value().isAuthor);
+    }else{
+        contactsListWidget->setLastMessage(friendId, "", true);
+    }
+}
+
 void MainWindow::sendMessage(const MessageInfo &msgInfo)
 {
-    auto selectedItem {contactsListWidget->getContactsWidget()->currentItem()};
-    auto contact{dynamic_cast<ContactsWidget*>(contactsListWidget->getContactsWidget()->itemWidget(selectedItem))};
-    contact->setLastMessage(true, msgInfo.text);
-    contact->update();
+    contactsListWidget->setLastMessage(msgInfo.friendId, msgInfo.text, msgInfo.isAuthor);
     messenger_->sendMessage(msgInfo);
 }
 
@@ -198,16 +205,31 @@ void MainWindow::onContextMenuSlot(const MessageInfo &msgInfo)
 void MainWindow::onContextMenuMessageRemovalFromDbSlot(const MessageInfo& msgInfo)
 {
     messenger_->removeMessageFromDb(msgInfo);
+    updateLastMessageIfNecessary(msgInfo.friendId);
 }
 
 void MainWindow::onDeleteMessageRequest(const QString &chatId, const QString &messageGuid)
 {
-    chatsMap[chatId.toULongLong()]->onContextMenuMessageRemovalSignal({messageGuid, 0,0,"", "", true});
+    auto ULLChatId {chatId.toULongLong()};
+    if(chatsMap.find(ULLChatId) == chatsMap.end()){
+        messenger_->requestChatHistory(ULLChatId);
+        messenger_->infoIsLoaded = true;
+        while(messenger_->infoIsLoaded);
+        auto chatHistory{messenger_->getChatHistory()};
+        chatsMap[ULLChatId].reset(new Chat{ULLChatId, "123", mediator_});
+        chatsMap[ULLChatId]->loadChatHistory(chatHistory);
+    }
+
+    chatsMap[ULLChatId]->onContextMenuMessageRemovalSignal({messageGuid, 0,0,"", "", true});
+    updateLastMessageIfNecessary(ULLChatId);
 }
 
 void MainWindow::onEditMessageRequest(const QString &chatId, const QString &messageGuid, const QString &newText)
 {
-    chatsMap[chatId.toULongLong()]->editMessageIfExists(messageGuid, newText);
+    if(chatsMap.find(chatId.toULongLong()) != chatsMap.end()){
+        chatsMap[chatId.toULongLong()]->editMessageIfExists(messageGuid, newText);
+    }
+    contactsListWidget->setLastMessage(chatId.toULongLong(), newText, false);
 }
 
 void MainWindow::on_settingsButton_clicked()
@@ -240,6 +262,7 @@ void MainWindow::sendFile(const std::string& filePath, unsigned long long receiv
 void MainWindow::onEditMessageInDb(const MessageInfo &msgInfo)
 {
     messenger_->editMessageInDb(msgInfo);
+    contactsListWidget->setLastMessage(msgInfo.friendId, msgInfo.text, msgInfo.isAuthor);
 }
 
 void MainWindow::onDeleteAccount()
