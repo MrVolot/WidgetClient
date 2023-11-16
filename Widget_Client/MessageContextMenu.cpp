@@ -18,12 +18,10 @@ MessageContextMenu::MessageContextMenu(const MessageInfo& msgInfo, Mediator *med
 MessageContextMenu::~MessageContextMenu()
 {
     delete ui;
-    qDebug()<<"DEST CALLED FOR " << messageInfo.messageGuid << messageInfo.text;
 }
 
 void MessageContextMenu::popup(const QPoint& pos)
 {
-    qDebug()<<messageInfo.messageGuid << messageInfo.text;
     // Get global cursor position
     QPoint globalPos = QCursor::pos();
 

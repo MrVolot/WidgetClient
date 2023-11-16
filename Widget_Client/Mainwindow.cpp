@@ -208,14 +208,6 @@ void MainWindow::onContextMenuMessageRemovalFromDbSlot(const MessageInfo& msgInf
     updateLastMessageIfNecessary(msgInfo.friendId);
 }
 
-//void MainWindow::onDeleteMessageRequest(const QString &chatId, const QString &messageGuid)
-//{
-//    if(chatsMap.find(chatId.toULongLong()) != chatsMap.end()){
-//        chatsMap[chatId.toULongLong()]->onContextMenuMessageRemovalSignal({messageGuid, 0,0,"", "", true});
-//        updateLastMessageIfNecessary(chatId.toULongLong());
-//    }
-//}
-
 void MainWindow::onDeleteMessageRequest(const QString &chatId, const QString &messageGuid)
 {
     auto ULLChatId {chatId.toULongLong()};
