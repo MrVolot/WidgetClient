@@ -18,7 +18,7 @@ class SettingsDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit SettingsDialog(QWidget *parent = nullptr, bool isGuestAccount = false, const QString& userNickname = "");
+    explicit SettingsDialog(QWidget *parent = nullptr, const QString& userNickname = "");
     ~SettingsDialog();
 
     void setCurrentEmail(const std::string& email);

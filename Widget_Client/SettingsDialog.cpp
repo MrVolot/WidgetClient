@@ -9,10 +9,9 @@
 #include <QBuffer>
 
 
-SettingsDialog::SettingsDialog(QWidget *parent, bool isGuestAccount, const QString& userNickname) :
+SettingsDialog::SettingsDialog(QWidget *parent, const QString& userNickname) :
     QDialog(parent),
     ui(new Ui::SettingsDialog),
-    isGuestAccount_{isGuestAccount},
     userNickname_{userNickname},
     emailVarified_{false},
     isCodeVerificationStage_{false}

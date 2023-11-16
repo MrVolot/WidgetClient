@@ -40,7 +40,7 @@ MainWindow::MainWindow(boost::asio::io_service& service, const std::string& hash
     connect(mediator_, &Mediator::contextMenuMessageRemovalFromDbSignal, this, &MainWindow::onContextMenuMessageRemovalFromDbSlot);
     connect(mediator_, &Mediator::deleteChat, this, &MainWindow::onDeleteChat);
 
-    settingsDialog_.reset(new SettingsDialog(this, isGuestAccount, userNickname));
+    settingsDialog_.reset(new SettingsDialog(this, userNickname));
     connect(&*settingsDialog_, &SettingsDialog::sendEmailForVerificationSignal, this, &MainWindow::onSendEmailForVerificationSignal);
     connect(&*settingsDialog_, &SettingsDialog::sendVerificationCodeSignal, this, &MainWindow::onSendVerificationCodeSignal);
     connect(&*settingsDialog_, &SettingsDialog::disableEmailAuthenticationSignal, this, &MainWindow::onDisableEmailAuthentication);
@@ -48,6 +48,9 @@ MainWindow::MainWindow(boost::asio::io_service& service, const std::string& hash
     connect(&*settingsDialog_, &SettingsDialog::changePassword, this, &MainWindow::onChangePassword);
     connect(&*settingsDialog_, &SettingsDialog::updateAvatar, this, &MainWindow::onUpdateAvatar);
     connect(&messenger_->signalHandler, &MessengerSignalHandler::sendCodeVerificationResult, &*settingsDialog_, &SettingsDialog::retrieveCodeVerificationResult);
+    if(isGuestAccount){
+        ui->settingsButton->setVisible(false);
+    }
 }
 
 MainWindow::~MainWindow()
