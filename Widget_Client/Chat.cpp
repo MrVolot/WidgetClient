@@ -266,7 +266,8 @@ void Chat::editMessageIfExists(const QString& messageGuid, const QString& newTex
 
 std::optional<MessageInfo> Chat::getLastMessage()
 {
-    auto count = messagesMap.size();
+    auto count =  ui->messageList->count() - 1;
+    qDebug()<< "MSG List Count "<< count;
     QListWidgetItem* item = ui->messageList->item(count);
     MessageWidget* widgetPtr = qobject_cast<MessageWidget*>(ui->messageList->itemWidget(item));
     if(widgetPtr!=nullptr){

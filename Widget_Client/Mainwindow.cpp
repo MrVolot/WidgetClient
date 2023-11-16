@@ -131,10 +131,7 @@ void MainWindow::updateLastMessageIfNecessary(unsigned long long friendId)
 
 void MainWindow::sendMessage(const MessageInfo &msgInfo)
 {
-    auto selectedItem {contactsListWidget->getContactsWidget()->currentItem()};
-    auto contact{dynamic_cast<ContactsWidget*>(contactsListWidget->getContactsWidget()->itemWidget(selectedItem))};
-    contact->setLastMessage(true, msgInfo.text);
-    contact->update();
+    contactsListWidget->setLastMessage(msgInfo.friendId, msgInfo.text, msgInfo.isAuthor);
     messenger_->sendMessage(msgInfo);
 }
 
@@ -211,12 +208,28 @@ void MainWindow::onContextMenuMessageRemovalFromDbSlot(const MessageInfo& msgInf
     updateLastMessageIfNecessary(msgInfo.friendId);
 }
 
+//void MainWindow::onDeleteMessageRequest(const QString &chatId, const QString &messageGuid)
+//{
+//    if(chatsMap.find(chatId.toULongLong()) != chatsMap.end()){
+//        chatsMap[chatId.toULongLong()]->onContextMenuMessageRemovalSignal({messageGuid, 0,0,"", "", true});
+//        updateLastMessageIfNecessary(chatId.toULongLong());
+//    }
+//}
+
 void MainWindow::onDeleteMessageRequest(const QString &chatId, const QString &messageGuid)
 {
-    if(chatsMap.find(chatId.toULongLong()) != chatsMap.end()){
-        chatsMap[chatId.toULongLong()]->onContextMenuMessageRemovalSignal({messageGuid, 0,0,"", "", true});
-        updateLastMessageIfNecessary(chatId.toULongLong());
+    auto ULLChatId {chatId.toULongLong()};
+    if(chatsMap.find(ULLChatId) == chatsMap.end()){
+        messenger_->requestChatHistory(ULLChatId);
+        messenger_->infoIsLoaded = true;
+        while(messenger_->infoIsLoaded);
+        auto chatHistory{messenger_->getChatHistory()};
+        chatsMap[ULLChatId].reset(new Chat{ULLChatId, "123", mediator_});
+        chatsMap[ULLChatId]->loadChatHistory(chatHistory);
     }
+
+    chatsMap[ULLChatId]->onContextMenuMessageRemovalSignal({messageGuid, 0,0,"", "", true});
+    updateLastMessageIfNecessary(ULLChatId);
 }
 
 void MainWindow::onEditMessageRequest(const QString &chatId, const QString &messageGuid, const QString &newText)
