@@ -584,6 +584,7 @@ void Messenger<Caller>::sendVerificationCode(const std::string &verCode)
 
 template <typename Caller>
 void Messenger<Caller>::disableEmailAuth(){
+    personalEmail_ = "null";
     Json::Value value;
     Json::FastWriter writer;
     value["command"] = DISABLE_EMAIL_AUTH;
