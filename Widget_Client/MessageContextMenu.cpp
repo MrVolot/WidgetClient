@@ -1,5 +1,6 @@
 #include "MessageContextMenu.h"
 #include "ui_MessageContextMenu.h"
+#include <QInputDialog>
 
 MessageContextMenu::MessageContextMenu(const MessageInfo& msgInfo, Mediator *mediator, QWidget *parent) :
     QWidget(parent),
@@ -40,7 +41,16 @@ void MessageContextMenu::setText(const QString &newText)
 
 void MessageContextMenu::on_notificationReminderButton_clicked()
 {
-    emit launchReminder(messageInfo);
+    bool ok;
+
+    QInputDialog inputDialog;
+    int minutes = inputDialog.getInt(this, tr("Set Reminder"),
+                                       tr("Minutes:"), 5, 1, 1440, 1, &ok);
+
+    if (ok) {
+        // User entered a value and pressed OK
+        emit launchReminder(messageInfo, minutes);
+    }
     hide();
 }
 

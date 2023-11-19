@@ -197,11 +197,11 @@ void MainWindow::cleanSearchLine()
     ui->searchLine->clear();
 }
 
-void MainWindow::onContextMenuSlot(const MessageInfo &msgInfo)
+void MainWindow::onContextMenuSlot(const MessageInfo &msgInfo, size_t mins)
 {
     auto friendWidget {contactsListWidget->findFriendById(msgInfo.friendId)};
     if(friendWidget.has_value()){
-        popupNotification(msgInfo.text, friendWidget.value().second->getContact().getName(), msgInfo.friendId, 5 * 1000); //30 secs
+        popupNotification(msgInfo.text, friendWidget.value().second->getContact().getName(), msgInfo.friendId, mins * 1000 * 60);
     }
 }
 

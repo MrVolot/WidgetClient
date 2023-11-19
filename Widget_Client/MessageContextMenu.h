@@ -27,7 +27,7 @@ private:
     MessageInfo messageInfo;
     Mediator *mediator_;
 signals:
-    void launchReminder(const MessageInfo& msgInfo);
+    void launchReminder(const MessageInfo& msgInfo, size_t mins);
     void deleteMessage();
     void destroyMessageWidget(const MessageInfo& msgInfo);
     void editRequested(const MessageInfo& msgInfo);

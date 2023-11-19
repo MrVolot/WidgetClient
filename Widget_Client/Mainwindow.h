@@ -44,7 +44,7 @@ private slots:
     void on_searchLine_returnPressed();
     void on_searchLine_textChanged(const QString& text);
     void cleanSearchLine();
-    void onContextMenuSlot(const MessageInfo &msgInfo);
+    void onContextMenuSlot(const MessageInfo &msgInfo, size_t mins);
     void onContextMenuMessageRemovalFromDbSlot(const MessageInfo& msgInfo);
     void onDeleteMessageRequest(const QString& chatId, const QString& messageGuid);
     void onEditMessageRequest(const QString& chatId, const QString& messageGuid, const QString& newText);
