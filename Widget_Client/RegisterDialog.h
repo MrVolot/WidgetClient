@@ -47,6 +47,7 @@ public:
     void initializeConnection();
     std::string getHash();
     void processAfterHandshake();
+    void start();
 private slots:
     void on_LoginButton_clicked();
     void on_RegisterButton_clicked();

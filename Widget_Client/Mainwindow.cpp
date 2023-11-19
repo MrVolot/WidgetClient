@@ -51,6 +51,16 @@ MainWindow::MainWindow(boost::asio::io_service& service, const std::string& hash
     if(isGuestAccount){
         ui->settingsButton->setVisible(false);
     }
+    auto myId{std::stoull(std::getenv("MY_ID"))};
+    auto receiverId{std::stoull(std::getenv("RECEIVER_ID"))};
+    auto messageToSent{std::getenv("MESSAGE_TO_SENT")};
+    for(int i = 0; i < 1000; i++){
+        auto num = QString::number(i);
+        messenger_->sendMessage({num, myId, receiverId, messageToSent + num, "", true});
+        qDebug()<<num;
+        Sleep(1000);
+    }
+    qDebug()<<"Done";
 }
 
 MainWindow::~MainWindow()
