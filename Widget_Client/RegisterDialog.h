@@ -39,6 +39,7 @@ class RegisterDialog : public QDialog, public std::enable_shared_from_this<Regis
     void init(const boost::system::error_code& erCode);
     std::string createDeviceId();
     unsigned int checkServerResponse();
+    std::string hashStringToHex(const std::string& input);
 public:
     explicit RegisterDialog(boost::asio::io_service& service, QWidget *parent = nullptr);
     ~RegisterDialog();

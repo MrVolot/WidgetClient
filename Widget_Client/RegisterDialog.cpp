@@ -6,6 +6,9 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <openssl/sha.h>
+#include <sstream>
+#include <iomanip>
 
 RegisterDialog::RegisterDialog(boost::asio::io_service& service, QWidget *parent) :
     QDialog(parent),
@@ -225,7 +228,7 @@ void RegisterDialog::sendCredentials(const std::string& command)
     value["command"] = command;
     value["login"] = ui->Login->text().toStdString();
     value["deviceId"] = createDeviceId();
-    value["password"] = ui->Password->text().toStdString();
+    value["password"] = hashStringToHex(ui->Password->text().toStdString());
     if(command == "register"){
         secureTransmitter_->setPrivateKey(config_.getConfigValue("privateKeyLocation").value());
         value["publicKey"] = secureTransmitter_->getPublicKeyFromPrivateKey();
@@ -278,3 +281,17 @@ void RegisterDialog::onSwitchToLoginWidget()
     ui->stackedWidget->setCurrentIndex(0);
 }
 
+std::string RegisterDialog::hashStringToHex(const std::string& input) {
+    unsigned char hash[SHA256_DIGEST_LENGTH];
+    SHA256_CTX sha256;
+    SHA256_Init(&sha256);
+    SHA256_Update(&sha256, input.c_str(), input.size());
+    SHA256_Final(hash, &sha256);
+
+    std::stringstream ss;
+    for(int i = 0; i < SHA256_DIGEST_LENGTH; i++) {
+        ss << std::hex << std::setw(2) << std::setfill('0') << (int)hash[i];
+    }
+
+    return ss.str();
+}
