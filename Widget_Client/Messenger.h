@@ -15,6 +15,7 @@
 #include <QFileInfo>
 #include <fstream>
 
+#include <QCoreApplication>
 #include <boost/algorithm/string.hpp>
 #include <boost/archive/iterators/base64_from_binary.hpp>
 #include <boost/archive/iterators/binary_from_base64.hpp>
@@ -275,7 +276,7 @@ void Messenger<Caller>::parseServerCommands(const std::string &data)
         break;
     case SEND_FILE:
         std::string decodedFileStream = base64_decode(value["fileStream"].asString());
-        create_file_from_string("C:\\Users\\Kiril\\Desktop\\" + value["fileName"].asString() , decodedFileStream);
+        emit signalHandler.processFileSignal(value["fileName"].asCString(), decodedFileStream);
         break;
     }
 }

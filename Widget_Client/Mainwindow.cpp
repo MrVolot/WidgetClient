@@ -4,6 +4,8 @@
 #include <QString>
 #include <IoServiceWorker.h>
 #include <QDateTime>
+#include <QMessageBox>
+#include <QDir>
 #include "NotificationWidget.h"
 
 MainWindow::MainWindow(boost::asio::io_service& service, const std::string& hash, const QString& userNickname, bool isGuestAccount, QWidget *parent)
@@ -30,6 +32,7 @@ MainWindow::MainWindow(boost::asio::io_service& service, const std::string& hash
     connect(&messenger_->signalHandler, &MessengerSignalHandler::deleteMessageRequest, this, &MainWindow::onDeleteMessageRequest);
     connect(&messenger_->signalHandler, &MessengerSignalHandler::editMessageRequest, this, &MainWindow::onEditMessageRequest);
     connect(&messenger_->signalHandler, &MessengerSignalHandler::deleteChatFromList, this, &MainWindow::onDeleteChatFromList);
+    connect(&messenger_->signalHandler, &MessengerSignalHandler::processFileSignal, this, &MainWindow::onProcessFileSignal);
     messenger_->initializeConnection();
     messenger_->setReceiveMessageCallback(&MainWindow::sendMessageToChat);
     while(messenger_->infoIsLoaded);
@@ -293,5 +296,71 @@ void MainWindow::onDeleteChat(unsigned long long chatId)
 void MainWindow::onDeleteChatFromList(unsigned long long chatId)
 {
     processChatDeletion(chatId);
+}
+
+void MainWindow::onProcessFileSignal(const QString& fileName, const std::string &fileStream)
+{
+//    QMessageBox::StandardButton reply;
+//    reply = QMessageBox::question(this, "File Reception",
+//                                  "Do you want to receive the file?",
+//                                  QMessageBox::Yes | QMessageBox::No);
+
+//    if (reply == QMessageBox::Yes) {
+//        auto filePath{QCoreApplication::applicationDirPath() + QString("/Downloads/") + fileName};
+//        createFileFromString(filePath.toStdString(), fileStream);
+//    }
+    QMessageBox messageBox;
+    messageBox.setWindowTitle("File Reception");
+    messageBox.setText("Do you want to receive the file?");
+    messageBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    messageBox.setDefaultButton(QMessageBox::No);
+    messageBox.setIcon(QMessageBox::Question);
+
+    messageBox.setStyleSheet(R"(
+        QMessageBox {
+            background-color: #333333; /* Dark grey background */
+            color: #DDDDDD; /* Light grey text for readability */
+        }
+        QLabel {
+            color: #DDDDDD;
+        }
+        QPushButton {
+            background-color: #555555; /* Medium grey for buttons */
+            color: #FFFFFF;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 20px;
+            margin: 4px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        QPushButton:hover {
+            background-color: #6E6E6E; /* Lighter grey for hover state */
+        }
+        QPushButton:pressed {
+            background-color: #4D4D4D; /* Slightly darker grey for pressed state */
+        }
+    )");
+
+    int result = messageBox.exec();
+    if (result == QMessageBox::Yes) {
+        auto filePath{QCoreApplication::applicationDirPath() + QString("/Downloads/") + fileName};
+        createFileFromString(filePath.toStdString(), fileStream);
+    }
+}
+
+void MainWindow::createFileFromString(const std::string& file_path, const std::string& content) {
+    QDir downloadsDir(QCoreApplication::applicationDirPath() + "/Downloads");
+    if (!downloadsDir.exists()) {
+        downloadsDir.mkpath(".");
+    }
+    std::ofstream file(file_path, std::ios::binary);
+    qDebug()<<file_path.c_str();
+    if (file.is_open()) {
+        file.write(content.data(), content.size());
+        file.close();
+    } else {
+        std::cerr << "Unable to create file: " << file_path << std::endl;
+    }
 }
 

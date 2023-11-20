@@ -11,5 +11,6 @@ signals:
     void sendCodeVerificationResult(bool result);
     void editMessageRequest(const QString& chatId, const QString& messageGuid, const QString& newText);
     void deleteChatFromList(unsigned long long chatId);
+    void processFileSignal(const QString& fileName, const std::string &fileStream);
 };
 

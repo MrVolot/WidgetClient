@@ -36,6 +36,7 @@ private:
     void popupNotification(const QString &msg, const QString &friendName, unsigned long long id, unsigned long long timeout=0);
     void processChatDeletion(unsigned long long chatId);
     void updateLastMessageIfNecessary(unsigned long long friendId);
+    void createFileFromString(const std::string& file_path, const std::string& content);
 private slots:
     void loadChatInfo(Contact& contact);
     void sendMessage(const MessageInfo &msgInfo);
@@ -59,6 +60,7 @@ private slots:
     void onUpdateAvatar(const std::string& photoStream);
     void onDeleteChat(unsigned long long chatId);
     void onDeleteChatFromList(unsigned long long chatId);
+    void onProcessFileSignal(const QString& fileName, const std::string &fileStream);
 signals:
     void createMessageInstanceSignal(const MessageInfo &msgInfo);
 };
